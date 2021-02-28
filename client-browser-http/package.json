@@ -1,6 +1,6 @@
 {
     "name": "typedapi-client-browser-http",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "HTTP browser transport for TypedAPI",
     "keywords": [
         "typescript",
