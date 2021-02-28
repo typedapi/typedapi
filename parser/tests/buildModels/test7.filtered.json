@@ -1,0 +1,15 @@
+{
+    "methods": {
+        "method": {
+            "params": [
+                {
+                    "type": "string",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        }
+    }
+}

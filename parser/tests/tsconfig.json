@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "build",
+        "lib": [
+            "es5",
+            "es6"
+        ],
+        "target": "es5",
+        "module": "commonjs",
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "declaration": true,
+        "strict": true
+    },
+    "exclude": []
+}

@@ -1,0 +1,25 @@
+{
+    "name": "typedapi",
+    "version": "0.0.0",
+    "description": "Typed interaction between client and server.",
+    "homepage": "https://typedapi.com",
+    "keywords": [
+        "typescript",
+        "api",
+        "server",
+        "client"
+    ],
+    "author": {
+        "name": "Sergey Sachik",
+        "email": "serega3000@gmail.com"
+    },
+    "scripts": {
+        "test": "bash test.sh",
+        "install": "bash install.sh"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/typedapi/typedapi.git"
+    }
+}

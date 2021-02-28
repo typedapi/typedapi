@@ -1,0 +1,398 @@
+{
+    "methods": {
+        "myMethod": {
+            "params": [
+                {
+                    "type": "object",
+                    "children": {
+                        "a": {
+                            "type": "string"
+                        },
+                        "b": {
+                            "type": "number"
+                        },
+                        "p1": {
+                            "type": "object",
+                            "children": {
+                                "a": {
+                                    "type": "string"
+                                },
+                                "x": {
+                                    "type": "object",
+                                    "children": {
+                                        "a": {
+                                            "type": "boolean"
+                                        },
+                                        "p4": {
+                                            "type": "Array",
+                                            "arrayElementType": {
+                                                "type": "object",
+                                                "children": {
+                                                    "a": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "p5": {
+                                            "type": "Array",
+                                            "arrayElementType": {
+                                                "type": "object",
+                                                "children": {
+                                                    "a": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "p2": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "object",
+                                "children": {
+                                    "a": {
+                                        "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "object",
+                                        "children": {
+                                            "a": {
+                                                "type": "boolean"
+                                            },
+                                            "p4": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "p5": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        },
+        "myMethod2": {
+            "params": [
+                {
+                    "type": "object",
+                    "children": {
+                        "a": {
+                            "type": "string"
+                        },
+                        "b": {
+                            "type": "number"
+                        },
+                        "p1": {
+                            "type": "object",
+                            "children": {
+                                "a": {
+                                    "type": "string"
+                                },
+                                "x": {
+                                    "type": "object",
+                                    "children": {
+                                        "a": {
+                                            "type": "boolean"
+                                        },
+                                        "p4": {
+                                            "type": "Array",
+                                            "arrayElementType": {
+                                                "type": "object",
+                                                "children": {
+                                                    "a": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "p5": {
+                                            "type": "Array",
+                                            "arrayElementType": {
+                                                "type": "object",
+                                                "children": {
+                                                    "a": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "p2": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "object",
+                                "children": {
+                                    "a": {
+                                        "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "object",
+                                        "children": {
+                                            "a": {
+                                                "type": "boolean"
+                                            },
+                                            "p4": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "p5": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        },
+        "myMethod3": {
+            "params": [
+                {
+                    "type": "Array",
+                    "arrayElementType": {
+                        "type": "object",
+                        "children": {
+                            "a": {
+                                "type": "string"
+                            },
+                            "b": {
+                                "type": "number"
+                            },
+                            "p1": {
+                                "type": "object",
+                                "children": {
+                                    "a": {
+                                        "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "object",
+                                        "children": {
+                                            "a": {
+                                                "type": "boolean"
+                                            },
+                                            "p4": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "p5": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "p2": {
+                                "type": "Array",
+                                "arrayElementType": {
+                                    "type": "object",
+                                    "children": {
+                                        "a": {
+                                            "type": "string"
+                                        },
+                                        "x": {
+                                            "type": "object",
+                                            "children": {
+                                                "a": {
+                                                    "type": "boolean"
+                                                },
+                                                "p4": {
+                                                    "type": "Array",
+                                                    "arrayElementType": {
+                                                        "type": "object",
+                                                        "children": {
+                                                            "a": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "p5": {
+                                                    "type": "Array",
+                                                    "arrayElementType": {
+                                                        "type": "object",
+                                                        "children": {
+                                                            "a": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        },
+        "myMethod4": {
+            "params": [
+                {
+                    "type": "Array",
+                    "arrayElementType": {
+                        "type": "object",
+                        "children": {
+                            "a": {
+                                "type": "string"
+                            },
+                            "b": {
+                                "type": "number"
+                            },
+                            "p1": {
+                                "type": "object",
+                                "children": {
+                                    "a": {
+                                        "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "object",
+                                        "children": {
+                                            "a": {
+                                                "type": "boolean"
+                                            },
+                                            "p4": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "p5": {
+                                                "type": "Array",
+                                                "arrayElementType": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "p2": {
+                                "type": "Array",
+                                "arrayElementType": {
+                                    "type": "object",
+                                    "children": {
+                                        "a": {
+                                            "type": "string"
+                                        },
+                                        "x": {
+                                            "type": "object",
+                                            "children": {
+                                                "a": {
+                                                    "type": "boolean"
+                                                },
+                                                "p4": {
+                                                    "type": "Array",
+                                                    "arrayElementType": {
+                                                        "type": "object",
+                                                        "children": {
+                                                            "a": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "p5": {
+                                                    "type": "Array",
+                                                    "arrayElementType": {
+                                                        "type": "object",
+                                                        "children": {
+                                                            "a": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        }
+    }
+}

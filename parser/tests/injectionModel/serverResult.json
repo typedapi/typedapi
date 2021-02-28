@@ -1,0 +1,62 @@
+{
+    "methods": {
+        "testInjectionMethod": {
+            "params": [
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        },
+        "testInjectionMethod2": {
+            "params": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId",
+                    "optional": true
+                }
+            ]
+        },
+        "testInjectionMethod3": {
+            "params": [
+                {
+                    "type": "number",
+                    "optional": true
+                },
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId",
+                    "optional": true
+                }
+            ]
+        },
+        "testInjectionMethod4": {
+            "params": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId"
+                },
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "number"
+                }
+            ],
+            "return": {
+                "type": "injection",
+                "injectionType": "AuthDataServerResponse"
+            }
+        }
+    }
+}

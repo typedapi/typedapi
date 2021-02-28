@@ -1,0 +1,43 @@
+{
+    "methods": {
+        "method": {
+            "return": {
+                "type": "Array",
+                "arrayElementType": {
+                    "type": "object",
+                    "children": {
+                        "id": {
+                            "type": "number"
+                        },
+                        "name": {
+                            "type": "string",
+                            "optional": true
+                        }
+                    }
+                }
+            }
+        },
+        "method2": {
+            "return": {
+                "type": "Array",
+                "arrayElementType": {
+                    "type": "object",
+                    "children": {
+                        "id": {
+                            "type": "number"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "tags": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

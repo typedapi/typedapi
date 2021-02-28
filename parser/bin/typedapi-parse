@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+if(!process.argv || process.argv.length !== 6) {
+    console.log("Usage:");
+    console.log("typedapi-parse [sourceFilename] [sourceObjectName] [outFilename] [reflectionOutFileName]");
+    console.log("For more info see https://typedapi.com/getting-started");
+    process.exit(0);
+}
+
+const build = require("../build/build").build;
+build({
+    sourceFilename: process.argv[2],
+    sourceObjectName: process.argv[3],
+    outFilename: process.argv[4],
+    reflectionOutFileName: process.argv[5],
+});

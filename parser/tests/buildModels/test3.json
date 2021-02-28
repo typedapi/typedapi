@@ -1,0 +1,18 @@
+{
+    "children": {
+        "subApi": {
+            "methods": {
+                "someMethod": {
+                    "params": [
+                        {
+                            "type": "number"
+                        }
+                    ],
+                    "return": {
+                        "type": "number"
+                    }
+                }
+            }
+        }
+    }
+}

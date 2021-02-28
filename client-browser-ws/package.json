@@ -1,0 +1,43 @@
+{
+    "name": "typedapi-client-browser-ws",
+    "version": "0.1.3",
+    "description": "Websocket browser transport for TypedAPI",
+    "keywords": [
+        "typescript",
+        "api",
+        "server",
+        "client"
+    ],
+    "main": "build/index.js",
+    "types": "build/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "singleTest": "jest --config jest-config.json -t",
+        "test": "eslint src/",
+        "prepublishOnly": "eslint src/ && rm -rf build/ && tsc",
+        "lint": "eslint src/"
+    },
+    "author": {
+        "name": "Sergey Sachik",
+        "email": "serega3000@gmail.com"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/typedapi/client-browser-ws.git"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.15.2",
+        "@typescript-eslint/parser": "^4.15.2",
+        "eslint": "^7.20.0",
+        "typedapi-client": "file:../client",
+        "typedapi-core": "file:../core"
+    },
+    "peerDependencies": {
+        "typedapi-client": "^0.1.5",
+        "typedapi-core": "^0.1.14"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

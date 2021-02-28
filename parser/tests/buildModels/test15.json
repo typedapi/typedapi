@@ -1,0 +1,26 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "object",
+                "children": {
+                    "date": {
+                        "type": "Date"
+                    }
+                }
+            }
+        },
+        "someMethod2": {
+            "return": {
+                "type": "Date"
+            }
+        },
+        "someMethod3": {
+            "params": [
+                {
+                    "type": "Date"
+                }
+            ]
+        }
+    }
+}

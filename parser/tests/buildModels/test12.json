@@ -1,0 +1,41 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "object",
+                "children": {
+                    "a": {
+                        "type": "value",
+                        "value": true
+                    },
+                    "b": {
+                        "type": "value",
+                        "value": false,
+                        "optional": true
+                    },
+                    "c": {
+                        "type": "union",
+                        "unionTypes": [
+                            {
+                                "type": "value",
+                                "value": 1
+                            },
+                            {
+                                "type": "value",
+                                "value": 2
+                            },
+                            {
+                                "type": "value",
+                                "value": "asd"
+                            },
+                            {
+                                "type": "value",
+                                "value": false
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "transform": {
+        "^.+\\.(t)sx?$": "ts-jest"
+    },
+    "testRegex": "/tests/.*-test\\.ts$",
+    "moduleFileExtensions": ["ts", "js"],
+    "collectCoverage": true,
+    "coveragePathIgnorePatterns": ["<rootDir>/build/", "<rootDir>/node_modules/", "<rootDir>/tests/"],
+    "coverageThreshold": {
+        "global": {
+            "branches": 100,
+            "functions": 100,
+            "lines": 100,
+            "statements": 100
+        }
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "methods": {
+        "method": {
+            "params": [
+                {
+                    "type": "object",
+                    "children": {
+                        "d": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "string"
+                            }
+                        },
+                        "p": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "object",
+                                "children": {
+                                    "c": {
+                                        "type": "boolean"
+                                    },
+                                    "p": {
+                                        "type": "Array",
+                                        "arrayElementType": {
+                                            "type": "object",
+                                            "children": {
+                                                "b": {
+                                                    "type": "string"
+                                                },
+                                                "p": {
+                                                    "type": "object",
+                                                    "children": {
+                                                        "a": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        }
+    }
+}

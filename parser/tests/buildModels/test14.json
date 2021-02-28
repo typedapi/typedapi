@@ -1,0 +1,10 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "injection",
+                "injectionType": "AuthDataServerResponse"
+            }
+        }
+    }
+}

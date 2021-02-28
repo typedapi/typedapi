@@ -1,0 +1,18 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "indObj",
+                "keyType": "string",
+                "valueType": {
+                    "type": "object",
+                    "children": {
+                        "a": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

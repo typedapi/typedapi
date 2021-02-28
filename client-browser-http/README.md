@@ -1,0 +1,1 @@
+Websocket browser client library for TypedAPI

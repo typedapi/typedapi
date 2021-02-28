@@ -1,0 +1,41 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "union",
+                "unionTypes": [
+                    {
+                        "type": "Tuple",
+                        "tupleTypes": [
+                            {
+                                "type": "value",
+                                "value": "a"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "Tuple",
+                        "tupleTypes": [
+                            {
+                                "type": "value",
+                                "value": "b"
+                            },
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "events": {
+        "event": {
+            "dataType": {
+                "type": "number"
+            }
+        }
+    },
+    "parametricEvents": {
+        "parametricEvent": {
+            "dataType": {
+                "type": "number"
+            },
+            "subscriptionType": {
+                "type": "string"
+            },
+            "parametersType": {
+                "type": "number"
+            }
+        }
+    }
+}

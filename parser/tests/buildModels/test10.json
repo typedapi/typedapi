@@ -1,0 +1,47 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "union",
+                "unionTypes": [
+                    {
+                        "type": "value",
+                        "value": "a"
+                    },
+                    {
+                        "type": "value",
+                        "value": "b"
+                    },
+                    {
+                        "type": "value",
+                        "value": "c"
+                    }
+                ]
+            }
+        },
+        "someMethod2": {
+            "return": {
+                "type": "object",
+                "children": {
+                    "t": {
+                        "type": "union",
+                        "unionTypes": [
+                            {
+                                "type": "value",
+                                "value": "a"
+                            },
+                            {
+                                "type": "value",
+                                "value": "b"
+                            },
+                            {
+                                "type": "value",
+                                "value": "c"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

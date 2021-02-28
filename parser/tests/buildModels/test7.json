@@ -1,0 +1,19 @@
+{
+    "methods": {
+        "method": {
+            "params": [
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId"
+                },
+                {
+                    "type": "string",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        }
+    }
+}

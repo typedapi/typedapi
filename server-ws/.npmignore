@@ -1,0 +1,8 @@
+/src
+/tests
+/jest-config.json
+/tsconfig.json
+/.travis.yml
+/coverage
+/.eslintrc.js
+/.eslintignore

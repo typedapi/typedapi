@@ -1,0 +1,49 @@
+{
+    "methods": {
+        "someMethod": {
+            "return": {
+                "type": "object",
+                "children": {
+                    "abs": {
+                        "type": "Array",
+                        "arrayElementType": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "Array",
+                                "arrayElementType": {
+                                    "type": "Array",
+                                    "arrayElementType": {
+                                        "type": "object",
+                                        "children": {
+                                            "a": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "nums": {
+                        "type": "Array",
+                        "arrayElementType": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "strs": {
+                        "type": "Array",
+                        "arrayElementType": {
+                            "type": "Array",
+                            "arrayElementType": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

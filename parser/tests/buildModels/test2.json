@@ -1,0 +1,45 @@
+{
+    "children": {
+        "subApi": {
+            "methods": {
+                "someMethod": {
+                    "params": [
+                        {
+                            "type": "object",
+                            "children": {
+                                "a": {
+                                    "type": "string"
+                                },
+                                "a1": {
+                                    "type": "string",
+                                    "optional": true
+                                },
+                                "b": {
+                                    "type": "number"
+                                },
+                                "b1": {
+                                    "type": "Array",
+                                    "arrayElementType": {
+                                        "type": "number"
+                                    }
+                                },
+                                "b2": {
+                                    "type": "Array",
+                                    "arrayElementType": {
+                                        "type": "number"
+                                    }
+                                },
+                                "c": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    ],
+                    "return": {
+                        "type": "number"
+                    }
+                }
+            }
+        }
+    }
+}

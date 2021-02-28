@@ -1,0 +1,15 @@
+{
+    "methods": {
+        "myMethod": {
+            "params": [
+                {
+                    "type": "injection",
+                    "injectionType": "apiUserId"
+                }
+            ],
+            "return": {
+                "type": "number"
+            }
+        }
+    }
+}

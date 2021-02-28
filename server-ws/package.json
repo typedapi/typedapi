@@ -1,0 +1,53 @@
+{
+    "name": "typedapi-server-ws",
+    "version": "0.1.14",
+    "description": "WebSocket server library for TypedApi",
+    "keywords": [
+        "typescript",
+        "api",
+        "server",
+        "client"
+    ],
+    "main": "build/index.js",
+    "types": "build/index.d.ts",
+    "scripts": {
+        "build": "rm -rf build/ && tsc",
+        "singleTest": "jest --config jest-config.json -t",
+        "test": "eslint src/ && jest --config jest-config.json",
+        "testOnly": "jest --config jest-config.json",
+        "prepublishOnly": "eslint src/ && jest --config jest-config.json && rm -rf build/ && tsc",
+        "lint": "eslint src/"
+    },
+    "author": {
+        "name": "Sergey Sachik",
+        "email": "serega3000@gmail.com"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/typedapi/server-ws.git"
+    },
+    "peerDependencies": {
+        "typedapi-core": "^0.2.8",
+        "typedapi-server": "^0.2.3"
+    },
+    "dependencies": {
+        "@types/websocket": "^1.0.1",
+        "websocket": "^1.0.33"
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.20",
+        "@typescript-eslint/eslint-plugin": "^4.15.2",
+        "@typescript-eslint/parser": "^4.15.2",
+        "eslint": "^7.20.0",
+        "jest": "^26.6.3",
+        "nodemon": "^2.0.7",
+        "ts-jest": "^26.5.0",
+        "typedapi-core": "file:../core",
+        "typedapi-server": "file:../server",
+        "typescript": "^3.3.1 & <4.2.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
