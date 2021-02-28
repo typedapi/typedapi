@@ -35,7 +35,8 @@
         "@typescript-eslint/parser": "^4.15.2",
         "eslint": "^7.20.0",
         "typedapi-core": "file:../core",
-        "typedapi-server": "file:../server"
+        "typedapi-server": "file:../server",
+        "typescript": "^4.1.0 & <4.2.0"
     },
     "peerDependencies": {
         "typedapi-core": "^0.1.3",
