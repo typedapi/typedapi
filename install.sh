@@ -1,5 +1,4 @@
-&& set -e \
-&& cd core \
+cd core \
 && npm install \
 && npm run build \
 && cd ../server \

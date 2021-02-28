@@ -1,4 +1,4 @@
-&& cd core \
+cd core \
 && npm test \
 && cd ../server \
 && npm test \
