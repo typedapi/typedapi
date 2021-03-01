@@ -50,7 +50,7 @@
         "ts-jest": "^26.4.4",
         "typedapi-core": "file:../core",
         "typedapi-server": "file:../server",
-        "typescript": "^3.9.0 & < 4.1.0"
+        "typescript": "^3.9.0 & <4.1.0"
     },
     "publishConfig": {
         "access": "public"
