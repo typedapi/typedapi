@@ -282,7 +282,7 @@ describe("All tests", () => {
     it("auth", async () => {
         let api = new Api
         let apiMap = buildMap(Reflection, api as unknown as Record<string, unknown>)
-        await newBench(apiMap,{
+        await newBench(apiMap, {
             //logger: new TextLogger(console.log, console.error),
         })
         await bench.connect()
@@ -316,26 +316,23 @@ describe("All tests", () => {
     })
 
     it("Handle connection error", async () => {
+
         const logger: LoggerInterface = {
             methodCall: () => { "" },
             clientError: () => { "" },
             serverError: () => { "" },
-            login: () => { "" },
-            logout: () => { "" },
-            online: () => { throw new Error("") },
-            offline: () => { "" },
-            event: () => { "" },
+            event: (event) => { if (event === "online") throw new Error("") },
+            status: () => { "" },
         }
+
         let apiMap = buildMap(Reflection, (new Api) as unknown as Record<string, unknown>)
+
         await newBench(apiMap, {
             logger: logger
         })
-        try {
-            await bench.connect()
-            await sleep(5)
-        } catch(err) {
 
-        }
+        await bench.connect()
+        await sleep(5)
 
         expect(bench.isConnected()).toBeFalsy()
 
@@ -382,7 +379,7 @@ describe("All tests", () => {
         let connectionId: string = ""
         bench.wsServer.getConnections().forEach(connection => {
             connectionId = connection.connectionId!
-        })         
+        })
         api.testEvent.fireForConnection(17, connectionId)
         result = await promiseResult
         expect(result[2]).toEqual(17)
@@ -438,5 +435,19 @@ describe("All tests", () => {
 
     })
 
-    
+    it("log status", async () => {
+        let api = new Api
+        let apiMap = buildMap(Reflection, api as unknown as Record<string, unknown>)
+        let lastLog = ""
+        let lastErrorLog = ""
+        await newBench(apiMap, {
+            logger: new TextLogger(l => lastLog = l, l => lastErrorLog = l),
+            logStatusInterval: 1000
+        })
+        await bench.connect()
+        await sleep(2500)
+        expect(lastLog).toMatch(/Users online: 1; Usage: cpu [0-9\.]+%, mem [0-9\.]+%, drive [0-9\.]+%/)
+    })
+
+
 })

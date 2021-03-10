@@ -294,6 +294,13 @@ describe("HttpServer", () => {
         expect((apiHttpServer as any).logger.logFunction).toEqual(console.log)
     })
 
+    it("log status", async () => {
+        let logger = new TestLogger()
+        recreateHttpServer({ logger, logStatusInterval: 1000 })
+        await sleep(2500)
+        expect(logger.statusesData.length).toEqual(1)
+    })
+
     it("logout", async () => {
         let logger = new TestLogger()
         recreateHttpServer({ logger })
@@ -304,7 +311,7 @@ describe("HttpServer", () => {
         await madeRequest([[1, "books.count", []]], { 'cookie': `typedapi.sid=123;typedapi.cid=${lastConnectionId};` }, undefined, () => { })
         result = await madeRequest([[2, "logout", []]])
         expect(result[0][2]).toEqual(true)
-        expect(logger.logouts.length).toEqual(1)
+        expect(logger.events.length).toEqual(2)
     })
 
     it("empty response", async () => {
@@ -419,7 +426,7 @@ describe("HttpServer", () => {
         let result = await resultPromise
         await madeRequest([[1, "someMethod"]])
         expect(result.length).toEqual(0)
-        
+
         expect(cId === lastConnectionId).toBeFalsy()
 
         result = await madeRequest([[5, "_.polling"]])

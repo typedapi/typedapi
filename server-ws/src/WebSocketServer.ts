@@ -24,6 +24,7 @@ import {
     ObjectProxy,
     isApiClientMessageInterface,
     EventsProxyOnSendData,
+    getUsageStatus,
 } from "typedapi-server"
 
 interface RequestValidatorInterface {
@@ -42,10 +43,12 @@ export interface WebSocketServerConfig {
     maxMessageLength?: number
     apiMap: ApiMap
     wsServer?: WsServer
+    logStatusInterval?: number
 }
 
 const SESSION_ID_KEY_DEFAULT = "typedapi.sid"
 const MAX_MESSAGE_LENGTH_DEFAULT = 256 * 1024
+const LOG_STATUS_INTERVAL_DEFAULT = 1000 * 60
 
 export class WebSocketServer {
 
@@ -63,6 +66,8 @@ export class WebSocketServer {
     private apiMap: ApiMap
     private httpServer: http.Server | undefined
     private logger: LoggerInterface
+    private logStatusInterval: number
+    private logStatusTimer: NodeJS.Timeout
 
     constructor(config: WebSocketServerConfig) {
         if (config.wsServer) {
@@ -97,6 +102,8 @@ export class WebSocketServer {
         if (this.httpServer) {
             this.httpServer.listen(this.port)
         }
+        this.logStatusInterval = config.logStatusInterval ?? LOG_STATUS_INTERVAL_DEFAULT
+        this.logStatusTimer = setInterval(() => this.logStatus(), this.logStatusInterval)
     }
 
     private async handleRequest(request: WsRequest) {
@@ -152,7 +159,7 @@ export class WebSocketServer {
             connectionId: makeid(),
         }
         this.connections.set(wsConnection, connectionData)
-        this.logger.online(connectionData)
+        this.logger.event("online", undefined, connectionData)
     }
 
     private sendEvent(data: EventsProxyOnSendData) {
@@ -306,7 +313,7 @@ export class WebSocketServer {
                     /* istanbul ignore else */
                     if (connData) {
                         if (!authData.id && connData.authData.id) {
-                            this.logger.logout(connData)
+                            this.logger.event("logout", undefined, connData)
                         }
                         connData.authData = authData
                         /* istanbul ignore else */
@@ -314,7 +321,7 @@ export class WebSocketServer {
                             await this.sessionProvider.update(connData.sessionId, authData)
                         }
                         if (authData.id) {
-                            this.logger.login(connData)
+                            this.logger.event("login", undefined, connData)
                         }
                     }
                     break
@@ -342,18 +349,25 @@ export class WebSocketServer {
         /* istanbul ignore else */
         if (data) {
             data.ip += description
-            this.logger.offline(data)
+            this.logger.event("offline", undefined, data)
             this.connections.delete(connection)
         } else {
             console.error("no connection data when closing")
         }
     }
 
+    private async logStatus() {
+        const usage = await getUsageStatus()
+        this.logger.status({
+            usage,
+            usersOnline: this.connections.size
+        })
+    }
+
     getConnections(): Map<WsConnection, ConnectionData> {
         return this.connections
     }
-
-
+    
 }
 
 /**

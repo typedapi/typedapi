@@ -17,6 +17,7 @@ import { ApiMap } from "../ApiMap"
 import { EventCallbackMetadata } from "../events"
 import { ApiItemMetadata } from "../decorators"
 import { isApiClientMessageInterfaceArray } from "../clientDataReflections"
+import { getUsageStatus } from "../getUsageStatus"
 
 export interface HttpServerConfig {
     serverMetadata?: ServerMetadata,
@@ -32,6 +33,7 @@ export interface HttpServerConfig {
     connectionLifetime?: number
     connectionIdKey?: string
     checkConnectionsInterval?: number
+    logStatusInterval?: number
 }
 
 const SESSION_ID_KEY_DEFAULT = "typedapi.sid"
@@ -40,6 +42,7 @@ const MAX_MESSAGE_LENGTH_DEFAULT = 256 * 1024
 const POLLING_WAIT_TIME_DEFAULT = 1000 * 15
 const CONNECTION_LIFETIME_DEFAULT = 1000 * 30
 const CHECK_CONNECTIONS_INTERVAL_DEFAULT = 5000
+const LOG_STATUS_INTERVAL_DEFAULT = 1000 * 60
 
 interface HttpServerConnection {
     id: string
@@ -80,6 +83,8 @@ export class HttpServer {
     private connectionLifetime: number
     private checkConnectionsTimer: NodeJS.Timeout
     private serverMetadata: ServerMetadata
+    private logStatusInterval: number
+    private logStatusTimer: NodeJS.Timeout
 
     constructor(private config: HttpServerConfig) {
         this.jsonEncoder = config.jsonEncoder ?? JSON
@@ -108,6 +113,8 @@ export class HttpServer {
         if (this.apiMap.broadcastEvents.size) {
             this.serverMetadata.broadcastEvents = Array.from(this.apiMap.broadcastEvents)
         }
+        this.logStatusInterval = config.logStatusInterval ?? LOG_STATUS_INTERVAL_DEFAULT
+        this.logStatusTimer = setInterval(() => this.logStatus(), this.logStatusInterval)
     }
 
     async handleRequest(request: http.IncomingMessage, response: http.ServerResponse): Promise<void> {
@@ -300,7 +307,7 @@ export class HttpServer {
                     const oldAuthData = connectionData.authData
                     returnValue[2] = !!responseData.response
                     if (!newAuthData.id && oldAuthData.id) {
-                        this.logger.logout(connectionData)
+                        this.logger.event("logout", undefined, connectionData)
                     }
                     /* istanbul ignore next */
                     if (!connectionData.sessionId) {
@@ -327,7 +334,7 @@ export class HttpServer {
                         }
                     })
                     if (newAuthData.id && !oldAuthData.id) {
-                        this.logger.login(connectionData)
+                        this.logger.event("login", undefined, connectionData)
                     }
                     break
                 }
@@ -474,6 +481,15 @@ export class HttpServer {
 
     destroy(): void {
         clearInterval(this.checkConnectionsTimer)
+        clearInterval(this.logStatusTimer)
+    }
+
+    async logStatus(): Promise<void> {
+        const usage = await getUsageStatus()
+        this.logger.status({
+            usage,
+            usersOnline: this.connections.size
+        })
     }
 
 }

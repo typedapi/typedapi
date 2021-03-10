@@ -1,4 +1,4 @@
-import { LoggerInterface } from "../../src/log"
+import { LoggerInterface,LoggerServerStatusData } from "../../src/log"
 import { ConnectionData } from "../../src/auth"
 
 interface LogMethodCallsItem {
@@ -31,6 +31,7 @@ export class TestLogger implements LoggerInterface {
     onlines: ConnectionData[] = []
     offlines: ConnectionData[] = []
     events: EventsItem[] = []
+    statusesData: LoggerServerStatusData[] = []
 
     methodCall(method: string, ms: number, input: any, output: any, connectionData: ConnectionData): void {
         this.logCalls.push({ method, ms, input, output, connectionData })
@@ -41,20 +42,11 @@ export class TestLogger implements LoggerInterface {
     serverError(method: string, input: any, error: string, connectionData: ConnectionData): void {
         this.logErrorCalls.push({ method, input, error, connectionData })
     }
-    login(connectionData: ConnectionData): void {
-        this.logins.push(connectionData)
-    }
-    logout(connectionData: ConnectionData): void {
-        this.logouts.push(connectionData)
-    }
-    online(connectionData: ConnectionData): void {
-        this.onlines.push(connectionData)
-    }
-    offline(connectionData: ConnectionData): void {
-        this.offlines.push(connectionData)
-    }
     event(event: string, data: any, connectionData?: ConnectionData): void {
         this.events.push({ event, data, connectionData })
+    }
+    status(data: LoggerServerStatusData): void {
+        this.statusesData.push(data)
     }
 
 }

@@ -1,4 +1,5 @@
 import { ConnectionData } from "./auth"
+import { UsageStatusInterface } from "./getUsageStatus"
 
 /**
  * Logger interface for TypedAPI loggers
@@ -7,11 +8,16 @@ export interface LoggerInterface {
     methodCall(method: string, ms: number, input: unknown, output: unknown, connectionData: ConnectionData): void
     clientError(method: string, input: unknown, error: string, connectionData: ConnectionData): void
     serverError(method: string, input: unknown, error: string, connectionData: ConnectionData): void
-    login(connectionData: ConnectionData): void
-    logout(connectionData: ConnectionData): void
-    online(connectionData: ConnectionData): void
-    offline(connectionData: ConnectionData): void
     event(event: string, data: unknown, connectionData?: ConnectionData): void
+    status(data: LoggerServerStatusData): void
+}
+
+/**
+ * Log current server status
+ */
+export interface LoggerServerStatusData {
+    usersOnline: number
+    usage: UsageStatusInterface
 }
 
 /**
@@ -29,46 +35,42 @@ export class TextLogger implements LoggerInterface {
     methodCall(method: string, ms: number, input: unknown, output: unknown, connectionData: ConnectionData): void {
         const inputString = input ? `, input: ${JSON.stringify(input)}` : ""
         const outputString = output ? `, output: ${JSON.stringify(output)}` : ""
-        const userIdString = connectionData.authData.id ? `user ${connectionData.authData.id}` : "anonymous"
-        this.logFunction(`${this.getDate()}: ${method}, ${ms}ms, ${connectionData.ip}, ${userIdString}${inputString}${outputString}`)
+        this.logFunction(`${this.dateString()}${method}, ${ms}ms,${this.connString(connectionData)}${inputString}${outputString}`)
     }
 
     clientError(method: string, input: unknown, error: string, connectionData: ConnectionData): void {
         const inputString = input ? `, input: ${JSON.stringify(input)}` : ""
-        const userIdString = connectionData.authData.id ? `user ${connectionData.authData.id}` : "anonymous"
-        this.logErrorFunction(`${this.getDate()}: Client error ${method}, ${connectionData.ip}, ${userIdString}${inputString}, Error: ${error}`)
+        this.logErrorFunction(`${this.dateString()}Client error ${method},${this.connString(connectionData)}${inputString}, Error: ${error}`)
     }
 
     serverError(method: string, input: unknown, error: string, connectionData: ConnectionData): void {
         const inputString = input ? `, input: ${JSON.stringify(input)}` : ""
-        const userIdString = connectionData.authData.id ? `user ${connectionData.authData.id}` : "anonymous"
-        this.logErrorFunction(`${this.getDate()}: Server error ${method}, ${connectionData.ip}, ${userIdString}${inputString}, Error: ${error}`)
+        this.logErrorFunction(`${this.dateString()}Server error ${method},${this.connString(connectionData)}${inputString}, Error: ${error}`)
     }
 
-    login(connectionData: ConnectionData): void {
-        this.logFunction(`${this.getDate()}: login user ${connectionData.authData.id}, ${connectionData.ip}`)
+    event(event: string, data: unknown, connectionData?: ConnectionData): void {
+        this.logFunction(`${this.dateString()}${event}${this.connString(connectionData)}${data ? " " + JSON.stringify(data) : ""}`)
     }
 
-    logout(connectionData: ConnectionData): void {
-        this.logFunction(`${this.getDate()}: logout user ${connectionData.authData.id}, ${connectionData.ip}`)
+    status(data: LoggerServerStatusData): void {
+        this.logFunction(`${this.dateString()}Users online: ${data.usersOnline}; Usage: cpu ${data.usage.cpu}%, mem ${data.usage.memory}%, drive ${data.usage.drive}%`)
     }
 
-    online(connectionData: ConnectionData): void {
-        const userIdString = connectionData.authData.id ? `${connectionData.authData.id}` : "anonymous"
-        this.logFunction(`${this.getDate()}: online user ${userIdString}, ${connectionData.ip}`)
+    private connString(cd?: ConnectionData): string {
+        if (!cd) return ""
+        let returnValue = ` ip:${cd.ip}`
+        if (cd.sessionId) returnValue += ` sid:${cd.sessionId}`
+        //if (cd.connectionId) returnValue += ` cid:${cd.connectionId}`
+        if (cd.authData.id) {
+            returnValue = ` id:${cd.authData.id}` + returnValue
+        } else {
+            returnValue = " anon" + returnValue
+        }
+        return returnValue
     }
 
-    offline(connectionData: ConnectionData): void {
-        const userIdString = connectionData.authData.id ? `${connectionData.authData.id}` : "anonymous"
-        this.logFunction(`${this.getDate()}: offline user ${userIdString}, ${connectionData.ip}`)
-    }
-
-    event(event: string, data: unknown): void {
-        this.logFunction(`${this.getDate()}: event ${event}${data ? " " + JSON.stringify(data) : ""}`)
-    }
-
-    private getDate(): string {
-        return (new Date).toISOString()
+    private dateString() {
+        return `[${(new Date).toISOString()}]: `
     }
 
 }
@@ -77,9 +79,6 @@ export class NullLogger implements LoggerInterface {
     methodCall(): void { "" }
     clientError(): void { "" }
     serverError(): void { "" }
-    login(): void { "" }
-    logout(): void { "" }
-    online(): void { "" }
-    offline(): void { "" }
     event(): void { "" }
+    status(): void { "" }
 }

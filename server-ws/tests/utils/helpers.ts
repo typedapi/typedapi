@@ -5,7 +5,7 @@ import { OutgoingHttpHeaders } from "http"
 
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
-export const waitFor = async (func: { (): boolean }, error: string | { (): string }, steps: number = 50, step: number = 1): Promise<void> => {
+export const waitFor = async (func: { (): boolean }, error: string | { (): string }, steps: number = 100, step: number = 1): Promise<void> => {
     for (let i = 0; i < steps; i++) {
         if (func()) return
         await sleep(step)
