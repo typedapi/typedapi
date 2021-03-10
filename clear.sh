@@ -1,0 +1,32 @@
+rm -rf client/build \
+client/coverage \
+client/node_modules \
+client/package-lock.json \
+client-browser-http/build \
+client-browser-http/coverage \
+client-browser-http/node_modules \
+client-browser-http/package-lock.json \
+client-browser-ws/build \
+client-browser-ws/coverage \
+client-browser-ws/node_modules \
+client-browser-ws/package-lock.json \
+core/build \
+core/coverage \
+core/node_modules \
+core/package-lock.json \
+parser/build \
+parser/coverage \
+parser/node_modules \
+parser/package-lock.json \
+redis-signaling/build \
+redis-signaling/coverage \
+redis-signaling/node_modules \
+redis-signaling/package-lock.json \
+server/build \
+server/coverage \
+server/node_modules \
+server/package-lock.json \
+server-ws/build \
+server-ws/coverage \
+server-ws/node_modules \
+server-ws/package-lock.json

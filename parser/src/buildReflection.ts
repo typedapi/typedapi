@@ -19,15 +19,21 @@ export const buildReflection = (declaration: DeclarationReflection): ApiObjectRe
             if (child.type instanceof ReferenceType) {
                 if (child.type.name === "Event" && child.type.typeArguments) {
                     if (!returnValue.events) returnValue.events = {}
-                    returnValue.events[child.name] = {
-                        dataType: parseType(child.type.typeArguments[0])
+                    const t = child.type.typeArguments[0]
+                    if (t instanceof IntrinsicType && t.name === "void") {
+                        returnValue.events[child.name] = {}
+                    } else {
+                        returnValue.events[child.name] = {
+                            dataType: parseType(child.type.typeArguments[0], child.sources![0].fileName, child.sources![0].line)
+                        }
                     }
                 } else if (child.type.name === "ParametricEvent" && child.type.typeArguments) {
+                    // @todo add void here
                     if (!returnValue.parametricEvents) returnValue.parametricEvents = {}
                     returnValue.parametricEvents[child.name] = {
-                        dataType: parseType(child.type.typeArguments[0]),
-                        subscriptionType: parseType(child.type.typeArguments[1]),
-                        parametersType: parseType(child.type.typeArguments[2])
+                        dataType: parseType(child.type.typeArguments[0], child.sources![0].fileName, child.sources![0].line),
+                        subscriptionType: parseType(child.type.typeArguments[1], child.sources![0].fileName, child.sources![0].line),
+                        parametersType: parseType(child.type.typeArguments[2], child.sources![0].fileName, child.sources![0].line)
                     }
                 } else if (child.type.reflection instanceof DeclarationReflection) {
                     if (!returnValue.children) returnValue.children = {}
@@ -54,6 +60,7 @@ export const buildReflection = (declaration: DeclarationReflection): ApiObjectRe
  * @returns TypedApi method reflection
  */
 const parseMethod = (signature: SignatureReflection): MethodReflection => {
+    
     const returnValue: MethodReflection = {}
 
     if (signature.parameters && signature.parameters.length) {
@@ -67,7 +74,7 @@ const parseMethod = (signature: SignatureReflection): MethodReflection => {
                     injectionType: parameter.name,
                 }
             } else {
-                typeReflection = parseType(parameter.type!)
+                typeReflection = parseType(parameter.type!, signature.sources![0].fileName, signature.sources![0].line)
             }
             if (parameter.flags.isOptional) {
                 typeReflection.optional = true
@@ -75,10 +82,13 @@ const parseMethod = (signature: SignatureReflection): MethodReflection => {
             returnValue.params.push(typeReflection)
         }
     }
-    if (signature.type instanceof IntrinsicType && signature.type.name !== "void") {
-        returnValue.return = parseType(signature.type)
+    
+    if (signature.type instanceof IntrinsicType) {
+        if (signature.type.name !== "void") {
+            returnValue.return = parseType(signature.type, signature.sources![0].fileName, signature.sources![0].line)
+        }
     } else if (signature.type instanceof ReferenceType && (signature.type!.typeArguments![0] as IntrinsicType).name !== "void") {
-        returnValue.return = parseType(signature.type!.typeArguments![0])
+        returnValue.return = parseType(signature.type!.typeArguments![0], signature.sources![0].fileName, signature.sources![0].line)
     }
 
     return returnValue
@@ -89,7 +99,7 @@ const parseMethod = (signature: SignatureReflection): MethodReflection => {
  * @param type Typedoc type reflection
  * @returns TypedApi type reflection
  */
-const parseType = (type: Type): TypeReflection => {
+const parseType = (type: Type, file: string, lineNumber: number): TypeReflection => {
     let returnValue: TypeReflection
     if (type instanceof ReferenceType) {
         if (type.name === "AuthDataResponse") {
@@ -104,7 +114,7 @@ const parseType = (type: Type): TypeReflection => {
                     children: {}
                 }
                 for (const child of type.reflection!.children!) {
-                    returnValue.children[child.name] = parseType(child.type!)
+                    returnValue.children[child.name] = parseType(child.type!, child.sources![0].fileName, child.sources![0].line)
                     if (child.flags.isOptional) {
                         returnValue.children[child.name].optional = child.flags.isOptional
                     }
@@ -113,22 +123,22 @@ const parseType = (type: Type): TypeReflection => {
                 returnValue = {
                     type: "indObj",
                     keyType: (type.reflection.indexSignature.parameters[0].type! as IntrinsicType).name === "string" ? "string" : "number",
-                    valueType: parseType(type.reflection.indexSignature.type)
+                    valueType: parseType(type.reflection.indexSignature.type, type.reflection.sources![0].fileName, type.reflection.sources![0].line)
 
                 }
             } else {
-                throw new Error("Bad type for parsing: " + type.type + " " + type.name)
+                throw new Error(`Bad type: ${type.type} ${type.name} ${file}#${lineNumber}`)
             }
 
         } else if (type.reflection instanceof DeclarationReflection && type.reflection.type instanceof UnionType) {
             returnValue = {
                 type: "union",
-                unionTypes: type.reflection.type.types.map(t => parseType(t))
+                unionTypes: type.reflection.type.types.map(t => parseType(t, type.reflection!.sources![0].fileName, type.reflection!.sources![0].line))
             }
         } else if (type.name === "Array") {
             returnValue = {
                 type: "Array",
-                arrayElementType: parseType(type.typeArguments![0]),
+                arrayElementType: parseType(type.typeArguments![0], file, lineNumber),
             }
         } else if (type.name === "Date") {
             returnValue = {
@@ -137,10 +147,10 @@ const parseType = (type: Type): TypeReflection => {
         } else if (type.reflection instanceof DeclarationReflection && type.reflection.type instanceof TupleType) {
             returnValue = {
                 type: "Tuple",
-                tupleTypes: type.reflection.type.elements.map(el => parseType(el))
+                tupleTypes: type.reflection.type.elements.map(el => parseType(el, type.reflection!.sources![0].fileName, type.reflection!.sources![0].line))
             }
         } else {
-            throw new Error("Bad type for parsing: " + type.type + " " + type.name)
+            throw new Error(`Bad type: ${type.type} ${type.name} ${file}#${lineNumber}`)
         }
     } else if (type instanceof ReflectionType && type.declaration.kind & ReflectionKind.TypeLiteral && type.declaration.children) {
         returnValue = {
@@ -148,7 +158,7 @@ const parseType = (type: Type): TypeReflection => {
             children: {}
         }
         for (const child of type.declaration.children) {
-            returnValue.children[child.name] = parseType(child.type!)
+            returnValue.children[child.name] = parseType(child.type!, child.sources![0].fileName, child.sources![0].line)
             if (child.flags.isOptional) {
                 returnValue.children[child.name].optional = child.flags.isOptional
             }
@@ -156,7 +166,7 @@ const parseType = (type: Type): TypeReflection => {
     } else if (type instanceof ArrayType) {
         returnValue = {
             type: "Array",
-            arrayElementType: parseType(type.elementType),
+            arrayElementType: parseType(type.elementType, file, lineNumber),
         }
     } else if (type instanceof StringLiteralType) {
         returnValue = {
@@ -169,7 +179,7 @@ const parseType = (type: Type): TypeReflection => {
             unionTypes: []
         }
         for (const typeItem of type.types) {
-            returnValue.unionTypes.push(parseType(typeItem))
+            returnValue.unionTypes.push(parseType(typeItem, file, lineNumber))
         }
     } else if (type instanceof IntrinsicType) {
         if (
@@ -179,22 +189,33 @@ const parseType = (type: Type): TypeReflection => {
         ) {
             returnValue = { type: type.name }
         } else if (["any", "unknown"].indexOf(type.name) !== -1) {
-            throw new Error("bad type " + type.name)
+            throw new Error(`bad type ${type.name} ${file}#${lineNumber}`)
         } else if (type.name === "true" || type.name === "false") {
             returnValue = {
                 type: "value",
                 value: type.name === "true"
             }
+        } else if (type.name === "null") {
+            returnValue = { type: "null" }
+        } else if (type.name === "undefined") {
+            returnValue = { type: "undefined" }
         } else {
-            throw new Error("bad type " + type.name)
+            throw new Error(`bad type ${type.name} ${file}#${lineNumber}`)
         }
     } else if (type instanceof UnknownType && type.name.match(/^[0-9]+$/)) {
         returnValue = {
             type: "value",
             value: parseInt(type.name)
         }
+    } else if (type instanceof ReflectionType && type.declaration.indexSignature && type.declaration.indexSignature.parameters && type.declaration.indexSignature.type) {
+        returnValue = {
+            type: "indObj",
+            keyType: (type.declaration.indexSignature.parameters[0].type! as IntrinsicType).name === "string" ? "string" : "number",
+            valueType: parseType(type.declaration.indexSignature.type, type.declaration.sources![0].fileName, type.declaration.sources![0].line)
+
+        }
     } else {
-        throw new Error("Bad type for parsing: " + type.type)
+        throw new Error(`Bad type: ${type.type} ${file}#${lineNumber}`)
     }
 
     return returnValue

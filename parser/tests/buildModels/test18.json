@@ -1,0 +1,22 @@
+{
+    "methods": {
+        "myMethod": {
+            "params": [
+                {
+                    "type": "number"
+                }
+            ],
+            "return": {
+                "type": "Array",
+                "arrayElementType": {
+                    "type": "object",
+                    "children": {
+                        "b": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -13,81 +13,57 @@ export interface HttpTransportConfig {
     url: string
     maxConnectionAttemps?: number
     logging?: boolean
-    sessionIdKey?: string
-    connectionIdKey?: string
 }
 
-const CONNECTION_ID_KEY_DEFAULT = "typedapi.cid"
 const MAX_CONNECTION_ATTEMPTS_DEFAULT = 3
-
-interface ResponseParametersListItem {
-    data: ClientMessage
-    resolve: { (data: ServerMessage): void }
-    reject: { (data: unknown): void }
-}
-
 
 export class HttpTransport implements TransportInterface {
 
-    private connectionIdKey: string
     private connectionAttempts = 0
-    private responsePromises: Map<number, ResponseParametersListItem> = new Map
-    private connectionId: string | undefined
+
+    private pendingMessages: ClientMessage[] = []
+
     private maxConnectionAttemps: number
+    private destroyed = false
 
     private connectionStatus: TransportConnectionStatus = "disconnected"
     readonly onMessage = new CoreEvent<ServerMessage>()
     readonly connectionStatusChanged = new CoreEvent<TransportConnectionStatus>()
 
     constructor(private config: HttpTransportConfig) {
-        this.connectionIdKey = config.connectionIdKey ?? CONNECTION_ID_KEY_DEFAULT
         this.maxConnectionAttemps = config.maxConnectionAttemps ?? MAX_CONNECTION_ATTEMPTS_DEFAULT
+        this.log("Http transport created")
     }
 
-    send(data: ClientMessage): Promise<ServerMessage> {
-
-        const promise = new Promise<ServerMessage>((resolve, reject) => {
-            this.responsePromises.set(data[0], { resolve, reject, data })
-        })
-        setTimeout(() => this.sendData(), 0)
-        return promise
-    }
-
-    private async sendData() {
-        const responsePromises = this.responsePromises
-        if (responsePromises.size || this.connectionStatus === "connecting") {
-            return
+    send(data: ClientMessage): Promise<void> {
+        switch (this.connectionStatus) {
+            case "connected":
+                this.pendingMessages.push(data)
+                setTimeout(() => this.sendPendingMessages(), 0)
+                break
+            case "connecting":
+                this.pendingMessages.push(data)
+                break
+            default:
+                this.onMessage.fire(["er", data[0], "NotConnectedError", "Not connected"])
         }
-        if (this.connectionStatus !== "connected") {
-            const err = new NotConnectedError()
-            responsePromises.forEach(rp => rp.reject(err))
-            return
-        }
-        this.responsePromises = new Map
-        await this.sendResponsePromises(responsePromises)
+        return Promise.resolve()
     }
 
-    private async sendResponsePromises(responsePromises: Map<number, ResponseParametersListItem>) {
-        const dataToSend: ClientMessage[] = []
-        responsePromises.forEach(rp => dataToSend.push(rp.data))
+    async sendPendingMessages(): Promise<void> {
+        if (!this.pendingMessages.length || this.connectionStatus !== "connected") return
+        const pendingMessages = this.pendingMessages
+        this.pendingMessages = []
         try {
-            const responseData = await this.madeRequest(dataToSend)
-            for (const message of responseData) {
-                if (message[0] === "r" || message[0] === "er") {
-                    const responsePromise = this.responsePromises.get(message[1])
-                    if (responsePromise) {
-                        responsePromise.resolve(message)
-                    }
-                }
-            }
+            const responseData = await this.madeRequest(pendingMessages)
+            responseData.forEach(item => this.onMessage.fire(item))
         } catch (err) {
             if (err instanceof NotConnectedError && this.connectionStatus === "connected") {
                 this.createConnection()
             }
-            responsePromises.forEach(rp => rp.reject(err))
+            pendingMessages.forEach(pm => this.onMessage.fire(["er", pm[0], "NotConnectedError", "Not connected"]))
         }
     }
-
 
     getConnectionStatus(): TransportConnectionStatus {
         return this.connectionStatus
@@ -105,54 +81,79 @@ export class HttpTransport implements TransportInterface {
         this.createConnection()
     }
 
-    private createConnection() {
+    private async createConnection() {
         this.setConnectionStatus("connecting")
-        const responsePromise: ResponseParametersListItem = {
-            data: [0, "_.ping"],
-            resolve: () => {
-                this.connectionAttempts = 0
-                this.setConnectionStatus("connected")
-            },
-            reject: () => {
-                this.connectionAttempts++
-                if (this.connectionAttempts < this.maxConnectionAttemps) {
-                    setInterval(() => this.createConnection(), 300)
+        try {
+            const result = await this.madeRequest([[0, "_.ping"]])
+            for (const resultItem of result) {
+                if (resultItem[0] === "r" && resultItem[1] === 0 && resultItem[2] === "pong") {
+                    this.setConnectionStatus("connected")
+                    this.sendPendingMessages()
+                    this.createPollingRequest()
+                    break
                 }
             }
+        } catch (err) {
+            this.connectionAttempts++
+            if (this.connectionAttempts < this.maxConnectionAttemps) {
+                setTimeout(() => this.createConnection(), 300)
+            } else {
+                this.setConnectionStatus("disconnected")
+            }
         }
-        const map = new Map<number, ResponseParametersListItem>()
-        map.set(0, responsePromise)
-        this.sendResponsePromises(map)
     }
 
     private log(text: string, ...args: unknown[]) {
         if (!this.config.logging) return
-        console.log(`ws: ${text}`, ...args)
+        console.log(`http: ${text}`, ...args)
     }
 
     private async madeRequest(data: ClientMessage[]): Promise<ServerMessage[]> {
+        if (this.destroyed) return []
         try {
+            data.forEach(d => this.log("out: ", d[0], d[1], d[2]))
             const headers: Record<string, string> = {
                 "Content-Type": "application/json"
-            }
-            if (this.connectionId) {
-                headers.cookie = `${this.connectionIdKey}=${this.connectionId};`
             }
             const result = await fetch(this.config.url, {
                 body: JSON.stringify(data),
                 method: "POST",
                 headers,
+                credentials: "include"
             })
-            const resultText = await result.text()
-            const resultData: ServerMessage[] = JSON.parse(resultText)
-            for (const resultItem of resultData) {
-                if (resultItem[0] === "sys" && resultItem[1].setConnectionId) {
-                    this.connectionId = resultItem[1].setConnectionId
-                }
-            }
+            const resultData: ServerMessage[] = await result.json()
+            resultData.forEach(d => this.log("in: ", d[0], d[1], d[2], d[3]))
             return resultData
         } catch (err) {
+            this.log("request error: ", err)
             throw new NotConnectedError(err.message)
         }
+    }
+
+    private pollingSent = false
+
+    private async createPollingRequest() {
+        if (this.pollingSent) return
+        this.pollingSent = true
+        let wasError = false
+        try {
+            const result = await this.madeRequest([[0, "_.polling"]])
+            for (const item of result) {
+                this.onMessage.fire(item)
+            }
+        } catch (err) {
+            wasError = true
+            if (err instanceof NotConnectedError && this.connectionStatus === "connected") {
+                this.createConnection()
+            } else {
+                console.error(err)
+            }
+        }
+        this.pollingSent = false
+        setTimeout(() => this.createPollingRequest(), wasError ? 1000 : 0)
+    }
+
+    destroy(): void {
+        this.destroyed = true
     }
 }

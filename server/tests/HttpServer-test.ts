@@ -116,7 +116,10 @@ describe("HttpServer", () => {
                 } else {
                     response.headers['set-cookie']?.forEach((item, index) => {
                         if (item.indexOf('typedapi.sid') !== -1) {
-                            lastSessionId = item.replace("typedapi.sid=", "")
+                            lastSessionId = item.replace("typedapi.sid=", "").replace(/;.+/, "")
+                        }
+                        if (item.indexOf('typedapi.cid') !== -1) {
+                            lastConnectionId = item.replace("typedapi.cid=", "").replace(/;.+/, "")
                         }
                     })
                 }
@@ -159,11 +162,10 @@ describe("HttpServer", () => {
 
         let result = await madeRequest([[1, "books.count", []]])
 
-        expect(result[0][0]).toEqual("sys")
-        expect(result[0][0] === "sys" && result[0][1].setConnectionId).toBeTruthy()
+        expect(result.length).toEqual(1)
 
-        expect(result[1][0]).toEqual("r")
-        expect(result[1][2]).toEqual(0)
+        expect(result[0][0]).toEqual("r")
+        expect(result[0][2]).toEqual(0)
 
     })
 
@@ -178,17 +180,18 @@ describe("HttpServer", () => {
         result = await madeRequest([[1, "books.count", []]], { 'cookie': `typedapi.sid=123;typedapi.cid=${lastConnectionId};` })
         let newSessionId = lastSessionId
         expect(sessionId === newSessionId).toBeFalsy()
-        expect(result[0][0]).toEqual("sys")
-        expect(result[0][0] === "sys" && result[0][1].setConnectionId).toBeTruthy()
+
+        expect(result.length).toEqual(1)
+        expect(result[0][0]).toEqual("r")
+        expect(result[0][2]).toEqual(0)
     })
 
     it("ping", async () => {
         let result = await madeRequest([[1, "_.ping", []]])
-        expect(result.length).toEqual(2)
+        expect(result.length).toEqual(1)
         expect(result[0][0]).toEqual("r")
         expect(result[0][1]).toEqual(1)
         expect(result[0][2]).toEqual("pong")
-        expect(result[1][0] === "sys" && result[1][1].setConnectionId).toBeTruthy()
         result = await madeRequest([[2, "_.ping", []]])
         expect(result.length).toEqual(1)
         expect(result[0][0]).toEqual("r")
@@ -198,18 +201,18 @@ describe("HttpServer", () => {
 
     it("polling", async () => {
         await madeRequest([[1, "_.ping", []]])
+        let pollingPromise = madeRequest([[2, "_.polling", []]])
         api.broadCastEvent.fire(1)
-        let result = await madeRequest([[2, "_.polling", []]])
+        let result = await pollingPromise
         expect(result.length).toEqual(1)
         expect(result[0][0] === "ev").toBeTruthy()
         expect(result[0][1]).toEqual("broadCastEvent")
         expect(result[0][2]).toEqual(1)
         recreateHttpServer()
         result = await madeRequest([[2, "_.polling", []]])
-        expect(result.length).toEqual(1)
-        expect(result[0][0] === "sys" && result[0][1].setConnectionId).toBeTruthy()
+        expect(result.length).toEqual(0)
 
-        let pollingPromise = madeRequest([[3, "_.polling", []]])
+        pollingPromise = madeRequest([[3, "_.polling", []]])
         await sleep(5)
         api.broadCastEvent.fire(123)
         result = await pollingPromise
@@ -221,8 +224,9 @@ describe("HttpServer", () => {
 
     it("method data", async () => {
         let result = await madeRequest([[1, "noExistsMethod", []]])
-        expect(result[1][0] === "er").toBeTruthy()
-        expect(result[1][3]).toEqual('Method noExistsMethod not found')
+        expect(result.length).toEqual(1)
+        expect(result[0][0] === "er").toBeTruthy()
+        expect(result[0][3]).toEqual('Method noExistsMethod not found')
     })
 
     it("no events", async () => {
@@ -294,9 +298,9 @@ describe("HttpServer", () => {
         let logger = new TestLogger()
         recreateHttpServer({ logger })
         let result = await madeRequest([[2, "testInjectionMethod7", []]])
-        expect(result[1][0]).toEqual("r")
-        expect(result[1][1]).toEqual(2)
-        expect(result[1][2]).toEqual(true)
+        expect(result[0][0]).toEqual("r")
+        expect(result[0][1]).toEqual(2)
+        expect(result[0][2]).toEqual(true)
         await madeRequest([[1, "books.count", []]], { 'cookie': `typedapi.sid=123;typedapi.cid=${lastConnectionId};` }, undefined, () => { })
         result = await madeRequest([[2, "logout", []]])
         expect(result[0][2]).toEqual(true)
@@ -305,18 +309,18 @@ describe("HttpServer", () => {
 
     it("empty response", async () => {
         let result = await madeRequest([[2, "someMethod", []]])
-        expect(result[1][0]).toEqual("r")
-        expect(result[1][1]).toEqual(2)
-        expect(result[1][2]).toBeUndefined()
+        expect(result[0][0]).toEqual("r")
+        expect(result[0][1]).toEqual(2)
+        expect(result[0][2]).toBeUndefined()
     })
 
     it("bad injection", async () => {
         let logger = new TestLogger()
         recreateHttpServer({ logger })
         let result = await madeRequest([[2, "testInjectionMethod5x", []]],)
-        expect(result[1][0]).toEqual("er")
-        expect(result[1][1]).toEqual(2)
-        expect(result[1][2]).toEqual("ServerError")
+        expect(result[0][0]).toEqual("er")
+        expect(result[0][1]).toEqual(2)
+        expect(result[0][2]).toEqual("ServerError")
         expect(logger.logErrorCalls[0].error.indexOf("Bad injection: fakeInjection") !== -1).toBeTruthy()
     })
 
@@ -408,11 +412,17 @@ describe("HttpServer", () => {
         })
         await madeRequest([[1, "someMethod"]])
         let cId = lastConnectionId
+        let resultPromise = madeRequest([[5, "_.polling"]])
+
+
         await sleep(20)
+        let result = await resultPromise
         await madeRequest([[1, "someMethod"]])
+        expect(result.length).toEqual(0)
+        
         expect(cId === lastConnectionId).toBeFalsy()
 
-        let result = await madeRequest([[5, "_.polling"]])
+        result = await madeRequest([[5, "_.polling"]])
         expect(result.length).toEqual(0)
     })
 
@@ -468,19 +478,37 @@ describe("HttpServer", () => {
         expect((result[0][2] as any).connectionId).toEqual(connectionId)
     })
 
-    it("server metadata", async() => {
+    it("server metadata", async () => {
         recreateHttpServer({
             serverMetadata: {
                 name: "My server",
-                version: "1"                
+                version: "1"
             }
         })
         await madeRequest([[1, "someMethod", []]])
-        let result = await madeRequest([[2, "_.v"],[3, "_.meta"]])
+        let result = await madeRequest([[2, "_.v"], [3, "_.meta"]])
         expect(result.length).toEqual(2)
         expect(result[0][2]).toEqual("1")
         expect((result[1][2] as any).broadcastEvents.length).toEqual(1)
         expect((result[1][2] as any).broadcastEvents[0]).toEqual("broadCastEvent")
+    })
+
+    const sendOptions = (): Promise<number> => {
+        return new Promise<number>((resolve, reject) => {
+            request(`http://localhost:8080/`, {
+                method: "OPTIONS",
+            }, (requestErr, requestResponse, responseBody) => {
+                if (requestErr) {
+                    return reject(requestErr)
+                }
+                resolve(requestResponse.statusCode)
+            })
+        })
+    }
+
+    it("CORS", async () => {
+        const code = await sendOptions()
+        expect(code).toEqual(204)
     })
 
 })

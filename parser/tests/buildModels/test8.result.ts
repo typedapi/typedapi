@@ -1,1 +1,1 @@
-"error:Method myMethod should return Promise"
+"error:Method myMethod should return Promise test8.from.ts#2"

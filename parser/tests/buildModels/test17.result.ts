@@ -1,1 +1,1 @@
-"error:Bad type for parsing: reference A"
+"error:Bad type: reference A test17.from.ts#6"

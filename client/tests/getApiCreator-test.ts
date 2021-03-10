@@ -18,7 +18,7 @@ describe("getApiCreator", () => {
         }
         let creator = getApiCreator(reflection)
         let transport = new TestTransport()
-        let api = creator({ transport, reflection }) as TestApiInterface
+        let api = creator({ transport }) as TestApiInterface
         let resultPromise = api.method(1)
         expect(transport.getLastSent()[1]).toEqual("method")
         expect((transport.getLastSent()[2] as any)[0]).toEqual(1)

@@ -3,15 +3,15 @@ import { build } from "../src/build"
 
 const clientFileTemplate = `// Generated file. Do not modify it.
 import { getApiCreator, Event, ParametricEvent } from "typedapi-client"
-import { ObjectReflection } from "typedapi-core"
+import { ApiObjectReflection } from "typedapi-core"
 {{interface}}
-const reflection: ObjectReflection = {{reflection}}
+const reflection: ApiObjectReflection = {{reflection}}
 export const createClient = getApiCreator<Api>(reflection)
 `
 
 const serverFileTemplate = `// Generated file. Do not modify it.
-import { ObjectReflection } from "typedapi-core"
-export const reflection: ObjectReflection = {{reflection}}
+import { ApiObjectReflection } from "typedapi-core"
+export const reflection: ApiObjectReflection = {{reflection}}
 `
 
 describe("Build test", () => {

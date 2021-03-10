@@ -40,7 +40,7 @@ class InterfaceWriter {
                 }
             })
             interfacesCount = interfacesForPrint.length
-            interfacesForPrint.forEach(i => this.writeInterface(i[1]))
+            interfacesForPrint.forEach(i => this.writeInterface(i[1], i[1].reflection!.sources![0].fileName, i[1].reflection!.sources![0].line))
         }
         return b.get()
     }
@@ -66,11 +66,11 @@ class InterfaceWriter {
             if (child.kind & ReflectionKind.Property) {
                 if (child.type instanceof ReferenceType) {
                     if (child.type.name === "Event" && child.type.typeArguments) {
-                        p(`${child.name}: Event<${this.inlineType(child.type.typeArguments[0])}>`)
+                        p(`${child.name}: Event<${this.inlineType(child.type.typeArguments[0], declaration.sources![0].fileName, declaration.sources![0].line)}>`)
                     } else if (child.type.name === "ParametricEvent" && child.type.typeArguments) {
                         p(`${child.name}: ParametricEvent`
-                            + `<${this.inlineType(child.type.typeArguments[0])}, `
-                            + `${this.inlineType(child.type.typeArguments[1])}>`)
+                            + `<${this.inlineType(child.type.typeArguments[0], declaration.sources![0].fileName, declaration.sources![0].line)}, `
+                            + `${this.inlineType(child.type.typeArguments[1], declaration.sources![0].fileName, declaration.sources![0].line)}>`)
                     } else if (child.type.reflection instanceof DeclarationReflection) {
                         p(`${child.name}: {`)
                         b.indentPlus()
@@ -78,7 +78,7 @@ class InterfaceWriter {
                         b.indentMinus()
                         p("}")
                     } else {
-                        throw new Error(`Bad type: ${child.type.type} ${child.type.name}`)
+                        throw new Error(`Bad type: ${child.type.type} ${child.type.name} ${child.sources![0].fileName} ${child.sources![0].line}`)
                     }
                 }
             }
@@ -90,12 +90,12 @@ class InterfaceWriter {
                 p("}")
             }
             if (child.signatures && (child.kind & ReflectionKind.Method || child.kind & ReflectionKind.Function)) {
-                this.buildMethod(b, child.name, child.signatures[0])
+                this.buildMethod(b, child.name, child.signatures[0], child.sources![0].fileName, child.sources![0].line)
             }
         }
     }
 
-    private inlineType(type: Type): string {
+    private inlineType(type: Type, file: string, lineNumber: number): string {
         const returnValue: string[] = []
         const p = returnValue.push.bind(returnValue)
         if (type instanceof ReferenceType) {
@@ -107,7 +107,7 @@ class InterfaceWriter {
                 }
                 p(type.reflection.name)
             } else if (type.name === "Array" && type.typeArguments) {
-                p(`${this.inlineArray(type.typeArguments[0])}`)
+                p(`${this.inlineArray(type.typeArguments[0], file, lineNumber)}`)
             } else if (type.name === "Date") {
                 p("Date")
             } else if (type.reflection instanceof DeclarationReflection && type.reflection.type instanceof UnionType) {
@@ -121,7 +121,7 @@ class InterfaceWriter {
                 }
                 p(type.reflection.name)
             } else {
-                throw new Error(`Bad reference type: ${type.reflection ? ` ${type.reflection.originalName}` : ""}`)
+                throw new Error(`Bad reference type: ${type.reflection ? ` ${type.reflection.originalName}` : ""} ${file}#${lineNumber}`)
             }
         } else if (type instanceof ReflectionType && type.declaration.kind & ReflectionKind.TypeLiteral && type.declaration.children) {
             p("{ ")
@@ -129,12 +129,12 @@ class InterfaceWriter {
             for (const child of type.declaration.children) {
                 if (!child.type) continue
                 const optional = child.flags.isOptional ? "?" : ""
-                propertiesStrings.push(`${child.name}${optional}: ${this.inlineType(child.type)}`)
+                propertiesStrings.push(`${child.name}${optional}: ${this.inlineType(child.type, child.sources![0].fileName, child.sources![0].line)}`)
             }
             p(propertiesStrings.join(", "))
             p(" }")
         } else if (type instanceof ArrayType) {
-            p(`${this.inlineArray(type.elementType)}`)
+            p(`${this.inlineArray(type.elementType, file, lineNumber)}`)
         } else if (type instanceof IntrinsicType) {
             p(type.name)
         } else if (type instanceof StringLiteralType) {
@@ -142,36 +142,35 @@ class InterfaceWriter {
         } else if (type instanceof UnionType) {
             const strings: string[] = []
             for (const typeItem of type.types) {
-                strings.push(this.inlineType(typeItem))
+                strings.push(this.inlineType(typeItem, file, lineNumber))
             }
             p(strings.join(" | "))
         } else if (type instanceof UnknownType && type.name.match(/^[0-9]+$/)) {
             p(type.name)
         }
         if (!returnValue.length) {
-            console.error("cant build interface for type ", type)
-            throw new Error("cant build interface for type")
+            throw new Error(`cant build interface for type ${file}#${lineNumber}`)
         }
         return returnValue.join("")
     }
 
-    private inlineArray(parameterType: Type): string {
+    private inlineArray(parameterType: Type, file: string, lineNumber: number): string {
         if (parameterType instanceof ArrayType) {
-            return this.inlineArray(parameterType.elementType) + "[]"
+            return this.inlineArray(parameterType.elementType, file, lineNumber) + "[]"
         }
         if (parameterType instanceof ReferenceType && parameterType.name === "Array" && parameterType.typeArguments) {
-            return this.inlineArray(parameterType.typeArguments[0]) + "[]"
+            return this.inlineArray(parameterType.typeArguments[0], file, lineNumber) + "[]"
         }
-        return this.inlineType(parameterType) + "[]"
+        return this.inlineType(parameterType, file, lineNumber) + "[]"
     }
 
-    private writeInterface(t: Type) {
+    private writeInterface(t: Type, file: string, lineNumber: number) {
         const b = this.builder
         const p = b.getPrint()
         if (t instanceof ReferenceType && t.reflection instanceof DeclarationReflection && t.reflection.type instanceof UnionType) {
             const strings: string[] = []
             for (const typeItem of t.reflection.type.types) {
-                strings.push(this.inlineType(typeItem))
+                strings.push(this.inlineType(typeItem, file, lineNumber))
             }
             p(`export type ${t.name} = ${strings.join(" | ")}`)
         }
@@ -185,10 +184,10 @@ class InterfaceWriter {
                         p(`${child.name}${optionalString}: ${child.type.name}`)
                     }
                     if (child.type instanceof ArrayType) {
-                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.elementType)}`)
+                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.elementType, child.sources![0].fileName, child.sources![0].line)}`)
                     }
                     if (child.type instanceof ReferenceType && child.type.name === "Array" && child.type.typeArguments) {
-                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.typeArguments[0])}`)
+                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.typeArguments[0], child.sources![0].fileName, child.sources![0].line)}`)
                     }
                     if (child.type instanceof ReferenceType
                         && child.type.reflection instanceof DeclarationReflection
@@ -203,15 +202,15 @@ class InterfaceWriter {
                         p(`${child.name}${optionalString}: ${child.type.reflection.name}`)
                     }
                     if (child.type instanceof UnionType) {
-                        p(`${child.name}${optionalString}: ${this.inlineType(child.type)}`)
+                        p(`${child.name}${optionalString}: ${this.inlineType(child.type, child.sources![0].fileName, child.sources![0].line)}`)
                     }
                     if (child.type instanceof ReferenceType && child.type.name === "Date") {
                         p(`${child.name}${optionalString}: Date`)
-                    }
+                    }           
                 }
             } else if (t.reflection.indexSignature && t.reflection.indexSignature.parameters && t.reflection.indexSignature.type) {
                 const typ = t.reflection.indexSignature.parameters[0].type as Type
-                p(`[key: ${this.inlineType(typ)}]: ${this.inlineType(t.reflection.indexSignature.type)}`)
+                p(`[key: ${this.inlineType(typ, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}]: ${this.inlineType(t.reflection.indexSignature.type, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}`)
             }
 
             b.indentMinus()
@@ -220,15 +219,15 @@ class InterfaceWriter {
         } else if (t instanceof ReferenceType && t.reflection instanceof DeclarationReflection && t.reflection.type instanceof TupleType) {
             const buffer: string[] = []
             for (const item of t.reflection.type.elements) {
-                buffer.push(this.inlineType(item))
+                buffer.push(this.inlineType(item, t.reflection.sources![0].fileName, t.reflection.sources![0].line))
             }
             p(`export type ${t.name} = [${buffer.join(", ")}]`)
         } else {
-            console.error("cant build interface for type", t)
+            console.error(`cant build interface for type ${t} ${file}#${lineNumber}`)
         }
     }
 
-    private buildMethod(b: CodeBuilder, name: string, signature: SignatureReflection) {
+    private buildMethod(b: CodeBuilder, name: string, signature: SignatureReflection, file: string, lineNumber: number) {
         const parametersStrings: string[] = []
         if (signature.parameters) {
             for (let i = 0; i < signature.parameters.length; i++) {
@@ -238,14 +237,14 @@ class InterfaceWriter {
                 }
                 if (!parameter.type) continue
                 const optional = parameter.flags.isOptional ? "?" : ""
-                parametersStrings.push(`${parameter.name}${optional}: ${this.inlineType(parameter.type)}`)
+                parametersStrings.push(`${parameter.name}${optional}: ${this.inlineType(parameter.type, signature.sources![0].fileName, signature.sources![0].line)}`)
             }
         }
         if (!(signature.type instanceof ReferenceType) || signature.type.name !== "Promise") {
-            throw new Error(`Method ${name} should return Promise`)
+            throw new Error(`Method ${name} should return Promise ${file}#${lineNumber}`)
         }
         if (signature.type.typeArguments && signature.type.typeArguments[0]) {
-            const returnString = this.inlineType(signature.type.typeArguments[0])
+            const returnString = this.inlineType(signature.type.typeArguments[0], signature.sources![0].fileName, signature.sources![0].line)
             b.print(`${name}(${parametersStrings.join(", ")}): Promise<${returnString}>`)
         }
     }

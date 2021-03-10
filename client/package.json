@@ -1,6 +1,6 @@
 {
     "name": "typedapi-client",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Client library for TypedApi",
     "homepage": "https://typedapi.com",
     "keywords": [
@@ -29,7 +29,7 @@
         "url": "https://github.com/typedapi/client.git"
     },
     "peerDependencies": {
-        "typedapi-core": "^0.2.7"
+        "typedapi-core": "^0.3.0"
     },
     "devDependencies": {
         "@types/jest": "^26.0.15",

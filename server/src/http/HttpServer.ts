@@ -5,9 +5,7 @@ import {
     ServerMessage,
     ClientMessage,
     ServerEventMessage,
-    ServerSystemMessage,
     ServerMetadata,
-
 } from "typedapi-core"
 import { ObjectProxy } from "../ObjectProxy"
 import { LoggerInterface, TextLogger } from "../log"
@@ -53,7 +51,7 @@ interface HttpServerConnection {
 
 /**
  * Http server implementation
- * Tasts:
+ * Tasks:
  * - Receive http request
  * - Validate request is it valid json with ClientMessage[]
  * - Validate request is it valid data for current method
@@ -121,6 +119,16 @@ export class HttpServer {
                 return
             }
         }
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost")
+        response.setHeader("Access-Control-Allow-Methods", "POST")
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type")
+        response.setHeader("Access-Control-Allow-Credentials", "true")
+        response.setHeader("Access-Control-Max-Age", 1000)
+        if (request.method === "OPTIONS") {
+            response.statusCode = 204
+            response.end("")
+            return
+        }
         if (request.method !== "POST") {
             response.statusCode = 300
             response.end("Bad request")
@@ -133,6 +141,7 @@ export class HttpServer {
 
     private async handleStringRequest(stringData: string, request: http.IncomingMessage, response: http.ServerResponse) {
         try {
+            const responseData: ServerMessage[] = []
             if (stringData.length > this.maxMessageLength) {
                 response.statusCode = 300
                 response.end("Bad request")
@@ -146,16 +155,19 @@ export class HttpServer {
                 throw new RequestError("No data")
             }
             const cookies = parseCookies(request)
+            let setCookiesArray: string[] | undefined
             let sessionId = cookies[this.sessionIdKey]
             if (sessionId) {
-                const authdata = await this.sessionProvider.get(sessionId)
-                if (!authdata) {
+                const authData = await this.sessionProvider.get(sessionId)
+                if (!authData) {
                     sessionId = undefined
                 }
             }
             if (!sessionId) {
                 sessionId = await this.sessionProvider.create()
-                response.setHeader("Set-Cookie", `${this.sessionIdKey}=${sessionId}`)
+                const cookieValue = `${this.sessionIdKey}=${sessionId}; SameSite=None; Secure`
+                setCookiesArray = [cookieValue]
+                response.setHeader("Set-Cookie", setCookiesArray)
             }
             const authData = await this.sessionProvider.get(sessionId)
             /* istanbul ignore next */
@@ -171,7 +183,6 @@ export class HttpServer {
                 ip: request.socket.remoteAddress ?? "",
                 sessionId: sessionId,
             }
-            const responseData: ServerMessage[] = []
             let isNewConnection = true
             let connectionId = cookies[this.connectionIdKey]
             let connection: HttpServerConnection | undefined
@@ -194,35 +205,34 @@ export class HttpServer {
                     isNewConnection = false
                 }
             }
+
+            if (connection) {
+                connection.lastActivity = Date.now()
+                if (isNewConnection) {
+                    const cookieValue = `${this.connectionIdKey}=${connectionId}; SameSite=None; Secure`
+                    if (setCookiesArray) {
+                        setCookiesArray.push(cookieValue)
+                    } else {
+                        setCookiesArray = [cookieValue]
+                    }
+                    response.setHeader("Set-Cookie", setCookiesArray)
+                }
+            }
+
             if (data.length === 1 && data[0][1] === "_.ping") {
                 responseData.push([
                     "r",
                     data[0][0],
                     "pong",
                 ])
-                if (isNewConnection && connection) {
-                    responseData.push([
-                        "sys",
-                        {
-                            setConnectionId: connectionId
-                        }
-                    ])
-                }
-                response.setHeader("Content-Type", "application/json")
-                response.end(this.jsonEncoder.stringify(responseData))
-                return
-            }
-            if (data.length === 1 && data[0][1] === "_.polling" && connection) {
+            } else if (data.length === 1 && data[0][1] === "_.polling" && connection) {
                 connection.lastActivity = Date.now()
                 const pendingMessages = this.pendingMessages.get(connection.id)
-                if (pendingMessages && pendingMessages.length) {
+                if (pendingMessages && pendingMessages.length > 0) {
                     response.setHeader("Content-Type", "application/json")
                     response.end("[" + pendingMessages.join(",") + "]")
                     this.pendingMessages.delete(connection.id)
                 } else if (isNewConnection) {
-                    const responseData: ServerSystemMessage[] = [["sys", {
-                        setConnectionId: connectionId
-                    }]]
                     response.setHeader("Content-Type", "application/json")
                     response.end(this.jsonEncoder.stringify(responseData))
                 } else {
@@ -231,22 +241,12 @@ export class HttpServer {
                 return
 
             } else {
-                if (connection) {
-                    if (isNewConnection) {
-                        responseData.push([
-                            "sys",
-                            {
-                                setConnectionId: connectionId
-                            }
-                        ])
-                    }
-                    connection.lastActivity = Date.now()
-                }
                 for (const dataItem of data) {
                     const responseItem = await this.handleDataRequest(dataItem, connectionData)
                     responseData.push(responseItem)
                 }
             }
+
             response.setHeader("Content-Type", "application/json")
             response.end(this.jsonEncoder.stringify(responseData))
         } catch (err) {
@@ -291,7 +291,6 @@ export class HttpServer {
         if (methodReflection.metadata.logConfig !== false) startTime = Date.now()
 
         const returnValue: ServerMessage = await this.methodProxy.callByClientMesssage(data, connectionData)
-
         const responseReflection = methodReflection.reflection.return
         if (returnValue[0] === "r" && responseReflection?.type === "injection") {
             switch (responseReflection.injectionType) {
@@ -338,11 +337,12 @@ export class HttpServer {
         }
 
         if (startTime) {
+            const logConfig = methodReflection.metadata.logConfig
             this.logger.methodCall(
                 method,
                 Date.now() - startTime,
-                methodReflection.metadata.logConfig !== "outputOnly" ? data[2] : undefined,
-                methodReflection.metadata.logConfig !== "inputOnly" ? returnValue[2] : undefined,
+                logConfig !== "outputOnly" && logConfig !== "noData" ? data[2] : undefined,
+                logConfig !== "inputOnly" && logConfig !== "noData" ? returnValue[2] : undefined,
                 connectionData
             )
         }
@@ -444,6 +444,7 @@ export class HttpServer {
         if (!connectionInfo) {
             throw new Error("No connection info")
         }
+        /* istanbul ignore next */
         if (connectionInfo.eventResponse) {
             connectionInfo.eventResponse.setHeader("Content-Type", "application/json")
             connectionInfo.eventResponse.end("[]")
@@ -459,14 +460,16 @@ export class HttpServer {
         const pollingMinActivity = Date.now() - this.pollingWaitTime
         const sheduleMinActivity = Date.now() - this.connectionLifetime
         this.connections.forEach(c => {
-            if (c.eventResponse && c.lastActivity < pollingMinActivity
-                || !c.eventResponse && c.lastActivity < sheduleMinActivity) {
-
+            if (!c.eventResponse && c.lastActivity < sheduleMinActivity) {
                 deleteConnectionIds.push(c.id)
-
+            }
+            if (c.eventResponse && c.lastActivity < pollingMinActivity) {
+                c.eventResponse.setHeader("Content-Type", "application/json")
+                c.eventResponse.end("[]")
+                delete c.eventResponse
             }
         })
-        deleteConnectionIds.map(id => this.dropConnection(id))
+        deleteConnectionIds.forEach(c => this.dropConnection(c))
     }
 
     destroy(): void {
