@@ -330,8 +330,13 @@ describe("All tests", () => {
         await newBench(apiMap, {
             logger: logger
         })
-        await bench.connect()
-        await sleep(5)
+        try {
+            await bench.connect()
+            await sleep(5)
+        } catch(err) {
+
+        }
+
         expect(bench.isConnected()).toBeFalsy()
 
     })
