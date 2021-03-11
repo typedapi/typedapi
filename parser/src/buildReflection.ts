@@ -68,7 +68,7 @@ const parseMethod = (signature: SignatureReflection): MethodReflection => {
         for (let i = 0; i < signature.parameters.length; i++) {
             const parameter = signature.parameters[i]
             let typeReflection: TypeReflection
-            if (["apiUserId", "apiAuthData"].indexOf(parameter.name) >= 0) {
+            if (["apiUserId", "apiAuthData", "apiConnectionData"].indexOf(parameter.name) >= 0) {
                 typeReflection = {
                     type: "injection",
                     injectionType: parameter.name,

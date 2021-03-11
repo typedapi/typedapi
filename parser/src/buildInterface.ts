@@ -232,7 +232,7 @@ class InterfaceWriter {
         if (signature.parameters) {
             for (let i = 0; i < signature.parameters.length; i++) {
                 const parameter = signature.parameters[i]
-                if (parameter.name === "apiUserId") {
+                if (["apiUserId", "apiAuthData", "apiConnectionData"].indexOf(parameter.name) >= 0) {
                     continue
                 }
                 if (!parameter.type) continue
