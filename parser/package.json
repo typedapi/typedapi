@@ -1,6 +1,6 @@
 {
     "name": "typedapi-parser",
-    "version": "0.3.1-0",
+    "version": "0.3.1-1",
     "description": "Typed interaction between client and server. Parser library for parsing types.",
     "main": "build/index.js",
     "types": "build/index.d.ts",
