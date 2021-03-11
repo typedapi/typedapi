@@ -1,6 +1,6 @@
 {
     "name": "typedapi",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Typed interaction between client and server.",
     "homepage": "https://typedapi.com",
     "keywords": [
@@ -16,7 +16,9 @@
     "scripts": {
         "test": "bash test.sh",
         "install": "bash install.sh",
-        "clear": "bash clear.sh"
+        "clear": "bash clear.sh",
+        "versionUp": "node versionUp.js",
+        "publish": "bash publish.sh"
     },
     "license": "MIT",
     "repository": {

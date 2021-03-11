@@ -1,6 +1,6 @@
 {
     "name": "typedapi-client-browser-ws",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Websocket browser transport for TypedAPI",
     "keywords": [
         "typescript",
@@ -35,8 +35,8 @@
         "typescript": "^4.1.0 & <4.2.0"
     },
     "peerDependencies": {
-        "typedapi-client": "^0.3.0",
-        "typedapi-core": "^0.3.0"
+        "typedapi-client": "^0.3.1",
+        "typedapi-core": "^0.3.1"
     },
     "publishConfig": {
         "access": "public"
