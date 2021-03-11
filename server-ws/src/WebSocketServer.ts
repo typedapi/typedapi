@@ -25,6 +25,7 @@ import {
     isApiClientMessageInterface,
     EventsProxyOnSendData,
     getUsageStatus,
+    Event,
 } from "typedapi-server"
 
 interface RequestValidatorInterface {
@@ -68,6 +69,10 @@ export class WebSocketServer {
     private logger: LoggerInterface
     private logStatusInterval: number
     private logStatusTimer: NodeJS.Timeout
+
+    readonly onClientConnect = new Event<ConnectionData>()
+    readonly onClientDisconnect = new Event<ConnectionData>()
+    readonly onClientUpdate = new Event<ConnectionData>()
 
     constructor(config: WebSocketServerConfig) {
         if (config.wsServer) {
@@ -162,6 +167,7 @@ export class WebSocketServer {
         }
         this.connections.set(wsConnection, connectionData)
         this.logger.event("online", undefined, connectionData)
+        this.onClientConnect.fire(connectionData)
     }
 
     private sendEvent(data: EventsProxyOnSendData) {
@@ -310,23 +316,31 @@ export class WebSocketServer {
         if (responseReflection && responseReflection.type === "injection") {
             switch (responseReflection.injectionType) {
                 case "AuthDataServerResponse": {
-                    const authData = (returnValue[2] as Record<string, unknown>).newAuthData as AuthData
+
+                    const newAuthData = (returnValue[2] as Record<string, unknown>).newAuthData as AuthData
                     returnValue[2] = (returnValue[2] as Record<string, unknown>).response
-                    const connData = this.connections.get(connection)
-                    /* istanbul ignore else */
-                    if (connData) {
-                        if (!authData.id && connData.authData.id) {
-                            this.logger.event("logout", undefined, connData)
-                        }
-                        connData.authData = authData
-                        /* istanbul ignore else */
-                        if (connData.sessionId) {
-                            await this.sessionProvider.update(connData.sessionId, authData)
-                        }
-                        if (authData.id) {
-                            this.logger.event("login", undefined, connData)
-                        }
+
+                    if (!newAuthData.id && connectionData.authData.id) {
+                        this.logger.event("logout", undefined, connectionData)
                     }
+
+                    const newConnectionData: ConnectionData = {
+                        authData: newAuthData,
+                        ip: connectionData.ip,
+                        sessionId: connectionData.sessionId,
+                        connectionId: connectionData.connectionId
+                    }
+                    this.connections.set(connection, newConnectionData)
+                    /* istanbul ignore else */
+                    if (connectionData.sessionId) {
+                        await this.sessionProvider.update(connectionData.sessionId, newAuthData)
+                    }
+                    if (newAuthData.id && newAuthData.id !== connectionData.authData.id) {
+                        this.logger.event("login", undefined, newConnectionData)
+                    }
+
+                    this.onClientUpdate.fire(newConnectionData)
+
                     break
                 }
                 default:
@@ -353,6 +367,7 @@ export class WebSocketServer {
         if (data) {
             data.ip += description
             this.logger.event("offline", undefined, data)
+            this.onClientDisconnect.fire(data)
             this.connections.delete(connection)
         } else {
             console.error("no connection data when closing")
