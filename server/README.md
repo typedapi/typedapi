@@ -1,15 +1,8 @@
 # TypedAPI Server library
 
-![build status](https://travis-ci.com/typedapi/server.svg?branch=master)
-
 • [Website](https://typedapi.com) • [Documentation](https://typedapi.com/getting-started) •
 
 **TypedAPI** is set of libraries for creating client-server APIs for applications written in typescript. 
-You describe API like ordinar class with only methods that return Promise. 
-Then parser will create interface based on that class.
-Interface will be used by client`s application.
-Then you only need to configure connectors (HTTP and WebSocket available).
-Also API class can contain Events (HTTP connector will use HTTP polling) and child classes. For more information see [documentation](https://typedapi.com/getting-started).
 
 ## About this library
 
@@ -32,41 +25,3 @@ Server functionality for TypedAPI.
 - [ObjectProxy.ts](src/ObjectProxy.ts): Serializer/restorer for objects that can be sent between client and server
 - [session.ts](src/session.ts): SessionProvider interface that used in many configs, and mamory provider that using for testing purposes
 - [validation.ts](src/validation.ts): validators for input data
-
-## How to start
-
-See [Getting started](https://typedapi.com/getting-started) page to start working with TypedAPI.
-
-## Contribute
-
-* [Submit bugs](https://github.com/typedapi/server/issues) and help us verify fixes as they are checked in.
-* Review the [source code changes](https://github.com/typedapi/server/issues/pulls).
-* Contribute bug fixes as pull requests and dont forget to document and test code.
-
-## Building
-
-```bash
-git clone https://github.com/typedapi/server.git
-cd server
-npm install
-npm run build
-```
-
-## Testing
-
-```bash
-# all tests
-npm test
-# only tests without linting
-npm run testOnly
-# single test
-npm run singleTest "test name"
-# linting
-npm run lint
-```
-
-For testing ports 8080,8081,8082 should be available.
-
-## License
-
-TypedAPI packages covered by [MIT](/LICENSE.txt) license.

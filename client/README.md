@@ -1,5 +1,9 @@
 # TypedAPI Client library
 
+**TypedAPI** is set of libraries for creating client-server APIs for applications written in typescript. 
+
+• [Website](https://typedapi.com) • [Documentation](https://typedapi.com/getting-started) •
+
 Client base functionality for TypedAPI. Not client itself.
 
 - [Connector.ts](src/Connector.ts): Connector class for preparing data for server and storing subscriptions
@@ -8,28 +12,3 @@ Client base functionality for TypedAPI. Not client itself.
 - [NotConnectedError.ts](src/NotConnectedError.ts): Error that thrown when connection fail
 - [ObjectProxy.ts](src/ObjectProxy.ts): Proxy for object that can be sent between client and server
 - [TransportInterface.ts](src/TransportInterface.ts): Interface for transports that provide data tranportation to server
-
-## Building
-
-```bash
-git clone https://github.com/typedapi/typedapi.git
-cd typedapi/core
-npm install
-npm run build
-cd ../client
-npm install
-npm run build
-```
-
-## Testing
-
-```bash
-# all tests
-npm test
-# only tests without linting
-npm run testOnly
-# single test
-npm run singleTest "test name"
-# linting
-npm run lint
-```

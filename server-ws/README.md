@@ -1,7 +1,5 @@
-WebSocket server for TypedAPI
+# WebSocket server for TypedAPI
 
-![build status](https://travis-ci.com/typedapi/server-ws.svg?branch=master)
+• [Website](https://typedapi.com) • [Documentation](https://typedapi.com/getting-started) •
 
-run single test
-
-./node_modules/.bin/jest --config jest-config.json -t 'test name'
+**TypedAPI** is set of libraries for creating client-server APIs for applications written in typescript. 

@@ -88,35 +88,3 @@ npm run parseApi
 ```
 
 For more information see [Getting started](https://typedapi.com/getting-started) page to start working with TypedAPI.
-
-## Contribute
-
-* [Submit bugs](https://github.com/typedapi/parser/issues) and help us verify fixes as they are checked in.
-* Review the [source code changes](https://github.com/typedapi/parser/issues/pulls).
-* Contribute bug fixes as pull requests and dont forget to document and test code.
-
-## Building
-
-```bash
-git clone https://github.com/typedapi/parser.git
-cd parser
-npm install
-npm run build
-```
-
-## Testing
-
-```bash
-# all tests
-npm test
-# only tests without linting
-npm run testOnly
-# single test
-npm run singleTest "test name"
-# linting
-npm run lint
-```
-
-## License
-
-TypedAPI packages covered by [MIT](/LICENSE.txt) license.
