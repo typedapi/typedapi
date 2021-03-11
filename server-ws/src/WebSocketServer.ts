@@ -119,6 +119,8 @@ export class WebSocketServer {
             connection = request.accept("echo-protocol", request.origin)
             await this.handleConnection(connection, request)
         } catch (err) {
+            // @todo remove ignore
+            /* istanbul ignore if */
             if (connection) {
                 connection.close(undefined, "handleConnectionError")
             } else {
@@ -367,7 +369,7 @@ export class WebSocketServer {
     getConnections(): Map<WsConnection, ConnectionData> {
         return this.connections
     }
-    
+
 }
 
 /**
