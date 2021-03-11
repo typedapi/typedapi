@@ -77,7 +77,7 @@ How to create script in package.json:
 ```json
 {
     "scripts": {
-        "parseApi": "typedapi-parser ./src/BackendApi.ts BackendApi ../client/apiFactory.ts ./apiReflection.ts"
+        "parseApi": "typedapi-parse ./src/BackendApi.ts BackendApi ../client/apiFactory.ts ./apiReflection.ts"
     }
 }
 ```
