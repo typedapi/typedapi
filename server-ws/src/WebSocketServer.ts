@@ -249,6 +249,7 @@ export class WebSocketServer {
                 })
             })
         }
+        clearInterval(this.logStatusTimer)
         return Promise.resolve()
     }
 
