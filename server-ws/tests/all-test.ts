@@ -452,5 +452,32 @@ describe("All tests", () => {
         expect(lastLog).toMatch(/Users online: 1; Usage: cpu [0-9\.]+%, mem [0-9\.]+%, drive [0-9\.]+%/)
     })
 
+    it("no log method", async () => {
+        let api = new Api
+        let apiMap = buildMap(Reflection, api as unknown as Record<string, unknown>)
+        let lastLog = ""
+        let lastErrorLog = ""
+        await newBench(apiMap, {
+            logger: new TextLogger(l => lastLog = l, l => lastErrorLog = l)
+        })
+        await bench.connect()
+        await bench.sendAndWaitForMessage([5, "books.find", []])
+        expect(lastLog).toMatch(/online/)
+
+        await bench.sendAndWaitForMessage([3, "testInjectionMethod7"])
+        const result = await bench.sendAndWaitForMessage([6, "books.create", [{
+            description: "",
+            title: ""
+        }]]) 
+
+        expect(lastLog).toMatch(/output/)
+        expect(lastLog.indexOf("input")).toEqual(-1)        
+        await bench.sendAndWaitForMessage([6, "books.get", [result[2].id]])
+
+        expect(lastLog).toMatch(/input/)
+        expect(lastLog.indexOf("output")).toEqual(-1)
+
+    })
+
 
 })

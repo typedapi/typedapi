@@ -278,6 +278,7 @@ export class WebSocketServer {
         let returnValue: ServerMessage
         try {
             returnValue = await this.handleDataMessage(connection, data)
+            this.logger.methodCall
         } catch (err) {
             this.logger.serverError("", data, err.message + "\n" + err.stack, { ip: "", authData: {} })
             returnValue = ["er", data[0], "ServerError", {}]
@@ -306,12 +307,17 @@ export class WebSocketServer {
                 })
             }
         }
-        const returnValue = await this.methodProxy.callByClientMesssage(data, connectionData)
+
         const methodReflection = this.apiMap.methods.get(data[1])
         /* istanbul ignore if */
         if (!methodReflection) {
             throw new Error("No method reflection")
         }
+
+        let startTime: number | undefined
+        if (methodReflection.metadata.logConfig !== false) startTime = Date.now()                
+
+        const returnValue = await this.methodProxy.callByClientMesssage(data, connectionData)
         const responseReflection = methodReflection.reflection.return
         if (responseReflection && responseReflection.type === "injection") {
             switch (responseReflection.injectionType) {
@@ -347,6 +353,17 @@ export class WebSocketServer {
                     throw new Error(`Bad injection: ${responseReflection.injectionType}`)
             }
         }
+        if (startTime) {
+            const logConfig = methodReflection.metadata.logConfig
+            this.logger.methodCall(
+                methodReflection.name,
+                Date.now() - startTime,
+                logConfig !== "outputOnly" && logConfig !== "noData" ? data[2] : undefined,
+                logConfig !== "inputOnly" && logConfig !== "noData" ? returnValue[2] : undefined,
+                connectionData
+            )
+        }
+
         return returnValue
     }
 
