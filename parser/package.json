@@ -1,6 +1,6 @@
 {
     "name": "typedapi-parser",
-    "version": "0.3.1-1",
+    "version": "0.3.2",
     "description": "Typed interaction between client and server. Parser library for parsing types.",
     "main": "build/index.js",
     "types": "build/index.d.ts",
@@ -29,11 +29,12 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/typedapi/parser.git"
+        "url": "https://github.com/typedapi/typedapi.git",
+        "directory": "parser"
     },
     "peerDependencies": {
-        "typedapi-core": "^0.3.1",
-        "typedapi-server": "^0.3.1"
+        "typedapi-core": "^0.3.2",
+        "typedapi-server": "^0.3.2"
     },
     "dependencies": {
         "@types/node": "^14.14.10",

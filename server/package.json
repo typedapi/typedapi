@@ -1,6 +1,6 @@
 {
     "name": "typedapi-server",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Typed interaction between client and server. Server library.",
     "homepage": "https://typedapi.com/",
     "keywords": [
@@ -26,10 +26,11 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/typedapi/server.git"
+        "url": "https://github.com/typedapi/typedapi.git",
+        "directory": "server"
     },
     "peerDependencies": {
-        "typedapi-core": "^0.3.1"
+        "typedapi-core": "^0.3.2"
     },
     "devDependencies": {
         "@types/jest": "^26.0.15",

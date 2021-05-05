@@ -1,6 +1,6 @@
 {
     "name": "typedapi-server-ws",
-    "version": "0.3.1-1",
+    "version": "0.3.2",
     "description": "WebSocket server library for TypedApi",
     "keywords": [
         "typescript",
@@ -25,11 +25,12 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/typedapi/server-ws.git"
+        "url": "https://github.com/typedapi/typedapi.git",
+        "directory": "server-ws"
     },
     "peerDependencies": {
-        "typedapi-core": "^0.3.1",
-        "typedapi-server": "^0.3.1"
+        "typedapi-core": "^0.3.2",
+        "typedapi-server": "^0.3.2"
     },
     "dependencies": {
         "@types/websocket": "^1.0.1",
