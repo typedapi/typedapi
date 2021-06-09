@@ -149,6 +149,39 @@ const parseType = (type: Type, file: string, lineNumber: number): TypeReflection
                 type: "Tuple",
                 tupleTypes: type.reflection.type.elements.map(el => parseType(el, type.reflection!.sources![0].fileName, type.reflection!.sources![0].line))
             }
+
+        } else if (
+            type instanceof ReferenceType 
+            && type.reflection instanceof DeclarationReflection 
+            && type.reflection.kind & ReflectionKind.TypeAlias 
+            && type.reflection.type instanceof ReflectionType 
+            && type.reflection.type.declaration instanceof DeclarationReflection
+            && type.reflection.type.declaration.indexSignature
+        ) {
+            const typ = type.reflection.type!.declaration!.indexSignature!.parameters![0]!.type! as IntrinsicType
+            returnValue = {
+                type: "indObj",
+                keyType: (typ).name === "string" ? "string" : "number",
+                valueType: parseType(type.reflection.type!.declaration!.indexSignature!.type!, type.reflection.type!.declaration!.sources![0].fileName, type.reflection.type!.declaration!.sources![0].line)
+            }                     
+        } else if (
+            type instanceof ReferenceType 
+            && type.reflection instanceof DeclarationReflection 
+            && type.reflection.kind & ReflectionKind.TypeAlias 
+            && type.reflection.type instanceof ReflectionType 
+            && type.reflection.type.declaration instanceof DeclarationReflection
+            && type.reflection.type.declaration.children
+        ) {   
+            returnValue = {
+                type: "object",
+                children: {}
+            }
+            for (const child of type.reflection.type.declaration.children) {
+                returnValue.children[child.name] = parseType(child.type!, child.sources![0].fileName, child.sources![0].line)
+                if (child.flags.isOptional) {
+                    returnValue.children[child.name].optional = child.flags.isOptional
+                }
+            }
         } else {
             throw new Error(`Bad type: ${type.type} ${type.name} ${file}#${lineNumber}`)
         }

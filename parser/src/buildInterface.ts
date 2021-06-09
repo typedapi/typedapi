@@ -106,6 +106,11 @@ class InterfaceWriter {
                     this.interfacesMap.set(type.reflection.name, type)
                 }
                 p(type.reflection.name)
+            } else if (type.reflection instanceof DeclarationReflection && type.reflection.kind & ReflectionKind.TypeAlias) {
+                if (!this.interfacesMap.has(type.reflection.name)) {
+                    this.interfacesMap.set(type.reflection.name, type)
+                }
+                p(type.reflection.name)
             } else if (type.name === "Array" && type.typeArguments) {
                 p(`${this.inlineArray(type.typeArguments[0], file, lineNumber)}`)
             } else if (type.name === "Date") {
@@ -178,36 +183,7 @@ class InterfaceWriter {
             p(`export interface ${t.name} {`)
             b.indentPlus()
             if (t.reflection.children) {
-                for (const child of t.reflection.children) {
-                    const optionalString = child.flags.isOptional ? "?" : ""
-                    if (child.type instanceof IntrinsicType) {
-                        p(`${child.name}${optionalString}: ${child.type.name}`)
-                    }
-                    if (child.type instanceof ArrayType) {
-                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.elementType, child.sources![0].fileName, child.sources![0].line)}`)
-                    }
-                    if (child.type instanceof ReferenceType && child.type.name === "Array" && child.type.typeArguments) {
-                        p(`${child.name}${optionalString}: ${this.inlineArray(child.type.typeArguments[0], child.sources![0].fileName, child.sources![0].line)}`)
-                    }
-                    if (child.type instanceof ReferenceType
-                        && child.type.reflection instanceof DeclarationReflection
-                        && (
-                            child.type.reflection.kind & ReflectionKind.Interface
-                            || child.type.reflection.kind & ReflectionKind.TypeAlias
-                        )
-                    ) {
-                        if (!this.interfacesMap.has(child.type.reflection.name)) {
-                            this.interfacesMap.set(child.type.reflection.name, child.type)
-                        }
-                        p(`${child.name}${optionalString}: ${child.type.reflection.name}`)
-                    }
-                    if (child.type instanceof UnionType) {
-                        p(`${child.name}${optionalString}: ${this.inlineType(child.type, child.sources![0].fileName, child.sources![0].line)}`)
-                    }
-                    if (child.type instanceof ReferenceType && child.type.name === "Date") {
-                        p(`${child.name}${optionalString}: Date`)
-                    }           
-                }
+                this.writeStructChildren(t.reflection.children)
             } else if (t.reflection.indexSignature && t.reflection.indexSignature.parameters && t.reflection.indexSignature.type) {
                 const typ = t.reflection.indexSignature.parameters[0].type as Type
                 p(`[key: ${this.inlineType(typ, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}]: ${this.inlineType(t.reflection.indexSignature.type, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}`)
@@ -222,6 +198,35 @@ class InterfaceWriter {
                 buffer.push(this.inlineType(item, t.reflection.sources![0].fileName, t.reflection.sources![0].line))
             }
             p(`export type ${t.name} = [${buffer.join(", ")}]`)
+
+        } else if (
+            t instanceof ReferenceType 
+            && t.reflection instanceof DeclarationReflection 
+            && t.reflection.kind & ReflectionKind.TypeAlias 
+            && t.reflection.type instanceof ReflectionType 
+            && t.reflection.type.declaration instanceof DeclarationReflection
+            && t.reflection.type.declaration.indexSignature
+        ) {
+            const typ = t.reflection.type!.declaration!.indexSignature!.parameters![0]!.type! as Type
+            p(`export type ${t.name} = {`)
+            b.indentPlus()
+            p(`[key: ${this.inlineType(typ, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}]: ${this.inlineType(t.reflection.type.declaration.indexSignature.type!, t.reflection.sources![0].fileName, t.reflection.sources![0].line)}`)
+            b.indentMinus()
+            p("}")                                    
+        } else if (
+            t instanceof ReferenceType 
+            && t.reflection instanceof DeclarationReflection 
+            && t.reflection.kind & ReflectionKind.TypeAlias 
+            && t.reflection.type instanceof ReflectionType 
+            && t.reflection.type.declaration instanceof DeclarationReflection
+            && t.reflection.type.declaration.children
+        ) {
+            p(`export type ${t.name} = {`)
+            b.indentPlus()
+            this.writeStructChildren(t.reflection.type.declaration.children)
+            b.indentMinus()
+            p("}")            
+
         } else {
             console.error(`cant build interface for type ${t} ${file}#${lineNumber}`)
         }
@@ -246,6 +251,41 @@ class InterfaceWriter {
         if (signature.type.typeArguments && signature.type.typeArguments[0]) {
             const returnString = this.inlineType(signature.type.typeArguments[0], signature.sources![0].fileName, signature.sources![0].line)
             b.print(`${name}(${parametersStrings.join(", ")}): Promise<${returnString}>`)
+        }
+    }
+
+    private writeStructChildren(children: DeclarationReflection[]) {
+        const b = this.builder
+        const p = b.getPrint()        
+        for (const child of children) {
+            const optionalString = child.flags.isOptional ? "?" : ""
+            if (child.type instanceof IntrinsicType) {
+                p(`${child.name}${optionalString}: ${child.type.name}`)
+            }
+            if (child.type instanceof ArrayType) {
+                p(`${child.name}${optionalString}: ${this.inlineArray(child.type.elementType, child.sources![0].fileName, child.sources![0].line)}`)
+            }
+            if (child.type instanceof ReferenceType && child.type.name === "Array" && child.type.typeArguments) {
+                p(`${child.name}${optionalString}: ${this.inlineArray(child.type.typeArguments[0], child.sources![0].fileName, child.sources![0].line)}`)
+            }
+            if (child.type instanceof ReferenceType
+                && child.type.reflection instanceof DeclarationReflection
+                && (
+                    child.type.reflection.kind & ReflectionKind.Interface
+                    || child.type.reflection.kind & ReflectionKind.TypeAlias
+                )
+            ) {
+                if (!this.interfacesMap.has(child.type.reflection.name)) {
+                    this.interfacesMap.set(child.type.reflection.name, child.type)
+                }
+                p(`${child.name}${optionalString}: ${child.type.reflection.name}`)
+            }
+            if (child.type instanceof UnionType) {
+                p(`${child.name}${optionalString}: ${this.inlineType(child.type, child.sources![0].fileName, child.sources![0].line)}`)
+            }
+            if (child.type instanceof ReferenceType && child.type.name === "Date") {
+                p(`${child.name}${optionalString}: Date`)
+            }           
         }
     }
 }

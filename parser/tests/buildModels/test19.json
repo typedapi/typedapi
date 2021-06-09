@@ -1,0 +1,32 @@
+{
+    "methods": {
+        "myMethod": {
+            "params": [
+                {
+                    "type": "indObj",
+                    "keyType": "string",
+                    "valueType": {
+                        "type": "object",
+                        "children": {
+                            "a": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            ],
+            "return": {
+                "type": "indObj",
+                "keyType": "string",
+                "valueType": {
+                    "type": "object",
+                    "children": {
+                        "a": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
