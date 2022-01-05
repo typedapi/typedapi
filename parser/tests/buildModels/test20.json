@@ -1,0 +1,14 @@
+{
+    "methods": {
+        "myMethod": {
+            "params": [
+                {
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        }
+    }
+}

@@ -35,6 +35,9 @@ export const buildReflection = (declaration: DeclarationReflection): ApiObjectRe
                         subscriptionType: parseType(child.type.typeArguments[1], child.sources![0].fileName, child.sources![0].line),
                         parametersType: parseType(child.type.typeArguments[2], child.sources![0].fileName, child.sources![0].line)
                     }
+                } else if (child.type.reflection instanceof DeclarationReflection && (child.type.reflection.kind & ReflectionKind.Method || child.type.reflection.kind & ReflectionKind.Function)) {
+                    if (!returnValue.methods) returnValue.methods = {}
+                    returnValue.methods[child.name] = parseMethod(child.type.reflection.signatures![0])
                 } else if (child.type.reflection instanceof DeclarationReflection) {
                     if (!returnValue.children) returnValue.children = {}
                     returnValue.children[child.name] = buildReflection(child.type.reflection)

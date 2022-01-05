@@ -71,6 +71,8 @@ class InterfaceWriter {
                         p(`${child.name}: ParametricEvent`
                             + `<${this.inlineType(child.type.typeArguments[0], declaration.sources![0].fileName, declaration.sources![0].line)}, `
                             + `${this.inlineType(child.type.typeArguments[1], declaration.sources![0].fileName, declaration.sources![0].line)}>`)
+                    } else if (child.type.reflection instanceof DeclarationReflection && (child.type.reflection.kind & ReflectionKind.Method || child.type.reflection.kind & ReflectionKind.Function)) {                            
+                        this.buildMethod(b, child.name, child.type.reflection.signatures![0], child.type.reflection.sources![0].fileName, child.type.reflection.sources![0].line)
                     } else if (child.type.reflection instanceof DeclarationReflection) {
                         p(`${child.name}: {`)
                         b.indentPlus()
